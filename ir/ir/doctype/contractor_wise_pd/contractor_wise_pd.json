@@ -1,0 +1,88 @@
+{
+ "actions": [],
+ "autoname": "autoincrement",
+ "creation": "2024-04-17 15:37:21.125246",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "designation",
+  "man_days_rate",
+  "travel_allowance_rate",
+  "total_mandays",
+  "mandays_amount",
+  "total_overtime",
+  "travel_allowance_amount",
+  "service_charges"
+ ],
+ "fields": [
+  {
+   "fieldname": "designation",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Designation",
+   "options": "Designation"
+  },
+  {
+   "fieldname": "man_days_rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Man Days Rate"
+  },
+  {
+   "fieldname": "travel_allowance_rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Travel Allowance Rate"
+  },
+  {
+   "fieldname": "total_mandays",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Total Mandays"
+  },
+  {
+   "fieldname": "mandays_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Mandays Amount"
+  },
+  {
+   "fieldname": "total_overtime",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Total Overtime"
+  },
+  {
+   "fieldname": "travel_allowance_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Travel Allowance Amount"
+  },
+  {
+   "fieldname": "service_charges",
+   "fieldtype": "Currency",
+   "label": "Service Charges"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-05-17 12:40:25.454509",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "Contractor wise PD",
+ "naming_rule": "Autoincrement",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

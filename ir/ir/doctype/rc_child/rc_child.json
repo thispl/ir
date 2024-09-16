@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "creation": "2024-07-26 13:05:47.247038",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "plant",
+  "rc_number",
+  "commencement_of_work",
+  "column_break_4",
+  "completion_of_work",
+  "max",
+  "registered",
+  "attachment"
+ ],
+ "fields": [
+  {
+   "columns": 1,
+   "fieldname": "plant",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Plant Name",
+   "options": "Plant"
+  },
+  {
+   "columns": 2,
+   "fieldname": "rc_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "RC Number"
+  },
+  {
+   "columns": 2,
+   "fieldname": "commencement_of_work",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "From Date"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 1,
+   "fieldname": "completion_of_work",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "To Date"
+  },
+  {
+   "columns": 2,
+   "fieldname": "max",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Max Workers"
+  },
+  {
+   "columns": 2,
+   "default": "0",
+   "fieldname": "registered",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Registered"
+  },
+  {
+   "fieldname": "attachment",
+   "fieldtype": "Attach",
+   "label": "Attachment"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-07-26 13:05:47.247038",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "RC Child",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

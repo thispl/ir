@@ -1,0 +1,131 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-04-01 18:09:31.447026",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "date",
+  "designation",
+  "basic",
+  "dearness_allowance",
+  "special_allowance",
+  "gross",
+  "ctc",
+  "earnings_provident_fund_13",
+  "earning_esi_325",
+  "service_charge",
+  "total",
+  "deduction_pf_12",
+  "deduction_esi_075",
+  "canteen",
+  "overtime"
+ ],
+ "fields": [
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "designation",
+   "fieldtype": "Link",
+   "label": "Designation",
+   "options": "Designation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "basic",
+   "fieldtype": "Currency",
+   "label": "Basic",
+   "read_only": 1
+  },
+  {
+   "fieldname": "dearness_allowance",
+   "fieldtype": "Currency",
+   "label": "Dearness Allowance",
+   "read_only": 1
+  },
+  {
+   "fieldname": "special_allowance",
+   "fieldtype": "Currency",
+   "label": "Special Allowance",
+   "read_only": 1
+  },
+  {
+   "fieldname": "gross",
+   "fieldtype": "Currency",
+   "label": "Gross",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ctc",
+   "fieldtype": "Currency",
+   "label": "CTC"
+  },
+  {
+   "fieldname": "earnings_provident_fund_13",
+   "fieldtype": "Currency",
+   "label": "Earnings Provident Fund 13%",
+   "read_only": 1
+  },
+  {
+   "fieldname": "earning_esi_325",
+   "fieldtype": "Currency",
+   "label": "Earning ESI 3.25%",
+   "read_only": 1
+  },
+  {
+   "fieldname": "service_charge",
+   "fieldtype": "Currency",
+   "label": "Service Charges 8%",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total",
+   "fieldtype": "Currency",
+   "label": "Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "deduction_pf_12",
+   "fieldtype": "Currency",
+   "label": "Deduction PF 12%",
+   "read_only": 1
+  },
+  {
+   "fieldname": "deduction_esi_075",
+   "fieldtype": "Currency",
+   "label": "Deduction ESI 0.75%",
+   "read_only": 1
+  },
+  {
+   "fieldname": "canteen",
+   "fieldtype": "Currency",
+   "label": "Canteen",
+   "read_only": 1
+  },
+  {
+   "fieldname": "overtime",
+   "fieldtype": "Currency",
+   "label": "Overtime"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-04-04 12:54:09.047586",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "Agency Wages Revision",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

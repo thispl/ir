@@ -1,0 +1,98 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-08-28 12:21:06.567111",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "shift_request",
+  "employee",
+  "employee_name",
+  "department",
+  "workflow_state",
+  "approver_name",
+  "requested_date",
+  "requested_shift"
+ ],
+ "fields": [
+  {
+   "fieldname": "shift_request",
+   "fieldtype": "Link",
+   "label": "Shift request",
+   "options": "Shift Request",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee ID",
+   "options": "Employee",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name"
+  },
+  {
+   "columns": 2,
+   "fetch_from": "employee.department",
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Department",
+   "options": "Department",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "workflow_state",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Status",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "fetch_from": "employee.custom_first_manager_name_",
+   "fieldname": "approver_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Approver Name",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "shift_request.from_date",
+   "fieldname": "requested_date",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Requested Date",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "shift_request.custom_requested_shift",
+   "fieldname": "requested_shift",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Requested Shift",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-08-28 12:32:31.871667",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "Shift Request Approval",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,166 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "OT Req-.######",
+ "creation": "2024-05-08 18:03:56.085568",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "employee",
+  "employee_name",
+  "ot_date",
+  "od_date",
+  "column_break_i4es",
+  "department",
+  "designation",
+  "employee_category",
+  "section_break_ekoq",
+  "planned_hour",
+  "ot_hour",
+  "on_duty_ot",
+  "column_break_y5ys",
+  "from_time",
+  "to_time",
+  "section_break_6twh",
+  "remarks",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee"
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:!doc.on_duty_ot",
+   "fieldname": "ot_date",
+   "fieldtype": "Date",
+   "label": "OT Date"
+  },
+  {
+   "fieldname": "planned_hour",
+   "fieldtype": "Time",
+   "label": "Planned Hour"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "ot_hour",
+   "fieldtype": "Time",
+   "label": "OT Hour"
+  },
+  {
+   "fieldname": "column_break_i4es",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "employee.department",
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "fetch_from": "employee.designation",
+   "fieldname": "designation",
+   "fieldtype": "Link",
+   "label": "Designation",
+   "options": "Designation"
+  },
+  {
+   "fetch_from": "employee.custom_employee_category",
+   "fieldname": "employee_category",
+   "fieldtype": "Data",
+   "label": "Employee Category",
+   "options": "Employee Category"
+  },
+  {
+   "fieldname": "section_break_ekoq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.on_duty_ot==\"On Duty OT\"",
+   "fieldname": "on_duty_ot",
+   "fieldtype": "Data",
+   "label": "On Duty OT",
+   "mandatory_depends_on": "eval:doc.on_duty_ot==\"On Duty OT\""
+  },
+  {
+   "depends_on": "eval:doc.on_duty_ot == \"On Duty OT\"",
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Reason"
+  },
+  {
+   "depends_on": "eval:doc.on_duty_ot",
+   "fieldname": "od_date",
+   "fieldtype": "Date",
+   "label": "OD Date",
+   "mandatory_depends_on": "eval:doc.on_duty_ot==\"On Duty OT\""
+  },
+  {
+   "depends_on": "eval:doc.on_duty_ot",
+   "fieldname": "from_time",
+   "fieldtype": "Time",
+   "label": "From Time"
+  },
+  {
+   "depends_on": "eval:doc.on_duty_ot",
+   "fieldname": "to_time",
+   "fieldtype": "Time",
+   "label": "To Time"
+  },
+  {
+   "fieldname": "column_break_y5ys",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_6twh",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Over Time Request",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-09-06 22:14:20.700949",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "Over Time Request",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

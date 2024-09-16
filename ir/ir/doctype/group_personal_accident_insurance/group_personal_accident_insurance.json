@@ -1,0 +1,85 @@
+{
+ "actions": [],
+ "creation": "2024-07-26 13:02:54.359107",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "isp",
+  "persons_covered",
+  "column_break_3",
+  "from",
+  "to",
+  "attachment",
+  "column_break_7",
+  "type",
+  "person_sum"
+ ],
+ "fields": [
+  {
+   "fieldname": "isp",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Insurance Service Provider"
+  },
+  {
+   "fieldname": "persons_covered",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "No of person covered"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "from",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "From"
+  },
+  {
+   "fieldname": "to",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "To"
+  },
+  {
+   "fieldname": "attachment",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "label": "Attachment"
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "\nNamed\nUnnamed"
+  },
+  {
+   "fieldname": "person_sum",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Sum Insured per Person"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-07-26 13:02:54.359107",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "Group Personal Accident Insurance",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

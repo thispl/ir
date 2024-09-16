@@ -4,6 +4,9 @@ app_publisher = "TEAMPROO"
 app_description = "Customizations for IR"
 app_email = "erp@groupteampro.com"
 app_license = "mit"
+
+
+
 # required_apps = []
 
 # Includes in <head>
@@ -114,42 +117,91 @@ app_license = "mit"
 # ---------------
 # Override standard doctype classes
 
-# override_doctype_class = {
-# 	"ToDo": "custom_app.overrides.CustomToDo"
-# }
+override_doctype_class = {
+	"Salary Slip": "ir.overrides.CustomSalarySlip",
+ 	"Attendance Regularize":"ir.overrides.CustomAttendanceRegularize"
+}
 
 # Document Events
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
+doc_events = {
+#     "Warning":{
+#         "validate":["ir.utils.new_occurrence_count"]
 # 	}
-# }
+    "Compensatory Off Request":{
+		"validate": ["ir.ir.doctype.compensatory_off_request.compensatory_off_request.comp_off_applicable","ir.ir.doctype.compensatory_off_request.compensatory_off_request.comp_off_req","ir.ir.doctype.compensatory_off_request.compensatory_off_request.validate_comp_off_app"],
+		"on_submit":["ir.ir.doctype.compensatory_off_request.compensatory_off_request.comp_off_allocation","ir.ir.doctype.compensatory_off_request.compensatory_off_request.submitted_date"],
+		"on_cancel":"ir.ir.doctype.compensatory_off_request.compensatory_off_request.comp_off_revert",
+	},
+	"Attendance":{
+		"validate":["ir.custom.update_ot_request"],
+  		"on_submit":"ir.utils.compoff_for_ot",
+    	"on_update":"ir.utils.update_shift"
+
+	},
+ 
+	"Shift Request":{
+		"before_submit": "ir.utils.shift_change_req",
+	},
+	"Agency":{
+		"validate":"ir.ir.doctype.agency.agency.salary_comp"
+	},
+	"Leave Application":{
+		"validate": ["ir.custom.restrict_for_zero_balance","ir.custom.check_on_duty"],
+	},
+	# "Permission Request":{
+	# 	"after_insert": ["ir.email_alerts.after_inserts"],
+    #  },
+    "Shift Schedule":{
+		"on_cancel":["ir.ir.doctype.shift_schedule.shift_schedule.shift_cancel"],
+     },
+    # "Attendance":{
+	# 	"on_update":["ir.utils.update_hours_alternate"]
+	# },
+    # "Attendance":{
+	# 	"on_update":["ir.utils.update_hours"]
+	# }
+    
+	# "On Duty Application":{
+	#	"after_insert": ["ir.email_alerts.after_insert"],
+	# },
+	# "Miss Punch Application":{
+	# 	"after_insert": ["ir.utils.validate_miss_punch"]
+	# },
+	
+}
+
 
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"ir.tasks.all"
-# 	],
-# 	"daily": [
-# 		"ir.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"ir.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"ir.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"ir.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"cron": {
+		"00 09 1 * *":[
+			"ir.custom.update_earned_leave"
+		],
+		"*/15 * * * *":[
+			"ir.mark_attendance.mark_att_process"
+		]
+	},
+	# "all": [
+	# 	"ir.tasks.all"
+	# ],
+	"daily": [
+		"ir.tasks.daily"
+	],
+	# "hourly": [
+	# 	"ir.tasks.hourly"
+	# ],
+	# "weekly": [
+	# 	"ir.tasks.weekly"
+	# ],
+	# "monthly": [
+	# 	"ir.tasks.monthly"
+	# ],
+}
 
 # Testing
 # -------

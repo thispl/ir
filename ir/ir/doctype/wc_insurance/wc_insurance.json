@@ -1,0 +1,68 @@
+{
+ "actions": [],
+ "creation": "2024-07-26 13:04:01.127214",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "isp",
+  "insurance_no",
+  "persons_covered",
+  "from",
+  "to",
+  "attachment"
+ ],
+ "fields": [
+  {
+   "fieldname": "isp",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Insurance Service Provider"
+  },
+  {
+   "columns": 2,
+   "fieldname": "insurance_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Insurance No"
+  },
+  {
+   "fieldname": "persons_covered",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "No of person covered"
+  },
+  {
+   "fieldname": "from",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "From"
+  },
+  {
+   "fieldname": "to",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "To"
+  },
+  {
+   "fieldname": "attachment",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "label": "Attachment"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-07-26 13:04:01.127214",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "WC Insurance",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

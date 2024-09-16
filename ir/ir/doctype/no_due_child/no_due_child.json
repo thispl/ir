@@ -1,0 +1,54 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-04-10 15:25:23.447385",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "hod_name",
+  "department",
+  "due_status",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "hod_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "HOD Name",
+   "options": "User"
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "fieldname": "due_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Due Status",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Description"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-04-10 15:32:57.155694",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "No Due Child",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

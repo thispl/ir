@@ -1,0 +1,32 @@
+# Copyright (c) 2024, TEAMPROO and contributors
+# For license information, please see license.txt
+
+# import frappe
+from frappe.model.document import Document
+import frappe
+
+class Agency(Document):
+	pass
+
+@frappe.whitelist()
+def salary_comp(doc, method):
+    frappe.errprint("HelloWorld")
+    details = frappe.get_all("Agency Wages", {'parent': doc.name},['designation', 'basic', 'dearness_allowance', 'travel_allowance_rate', 'special_allowance', 'service_charge','canteen','gross','other_allowance'])
+    for wage_detail in details:
+        frappe.errprint("HelloWorld2")
+        employee_list = frappe.get_all("Employee",{'employment_type':'Agency','custom_agency_name':doc.name,'designation': wage_detail['designation']},['name'])
+        for emp in employee_list:
+            frappe.errprint(emp.name)
+            frappe.errprint("HelloWorld3")
+            employee = frappe.get_doc("Employee", emp['name'])            
+            employee.custom_basic = wage_detail['basic']
+            employee.custom_dearness_allowance = wage_detail['dearness_allowance']
+            employee.custom_conveyance = wage_detail['travel_allowance_rate']
+            employee.custom_special_allowance = wage_detail['special_allowance']
+            employee.custom_service_charges = wage_detail['service_charge']
+            employee.custom_canteen= wage_detail['canteen']
+            employee.custom_gross=  wage_detail['gross'] 
+            employee.custom_other_allowance=wage_detail['other_allowance']         
+            frappe.errprint("HelloWorld4")
+            employee.save()    
+    frappe.db.commit()  

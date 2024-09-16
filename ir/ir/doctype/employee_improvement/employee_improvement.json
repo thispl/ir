@@ -1,0 +1,155 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "EI.######",
+ "creation": "2024-05-24 12:49:32.162305",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_mntg",
+  "employee_id",
+  "employee_name",
+  "department",
+  "column_break_uqzv",
+  "designation",
+  "posting_date",
+  "emp_category",
+  "improvement",
+  "improvement_description",
+  "column_break_ucws",
+  "improvement_process",
+  "evaluation",
+  "evaluated_by",
+  "remark",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_mntg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "employee_id",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee ID",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "employee_id.employee_name",
+   "fetch_if_empty": 1,
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee_id.department",
+   "fetch_if_empty": 1,
+   "fieldname": "department",
+   "fieldtype": "Data",
+   "label": "Department",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee_id.designation",
+   "fetch_if_empty": 1,
+   "fieldname": "designation",
+   "fieldtype": "Data",
+   "label": "Designation",
+   "read_only": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": " Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_uqzv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "improvement",
+   "fieldtype": "Section Break",
+   "label": "Improvement"
+  },
+  {
+   "fieldname": "improvement_description",
+   "fieldtype": "Small Text",
+   "label": "Improvement Description"
+  },
+  {
+   "fieldname": "improvement_process",
+   "fieldtype": "Small Text",
+   "label": "Improvement Impact of Process"
+  },
+  {
+   "fieldname": "column_break_ucws",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "evaluation",
+   "fieldtype": "Section Break",
+   "label": "Evaluation"
+  },
+  {
+   "fieldname": "evaluated_by",
+   "fieldtype": "Link",
+   "label": "Evaluated By",
+   "options": "User"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Small Text",
+   "label": "Evaluator Remark"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Employee Improvement",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "employee_id.custom_employee_category",
+   "fetch_if_empty": 1,
+   "fieldname": "emp_category",
+   "fieldtype": "Data",
+   "label": "Employee Category",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-05-25 13:13:14.487746",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "Employee Improvement",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

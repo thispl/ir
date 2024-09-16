@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "OT Plan-.######",
+ "creation": "2024-05-03 10:43:59.611455",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "ot_date",
+  "posting_date",
+  "department",
+  "request_by",
+  "column_break_7hrf",
+  "purpose",
+  "section_break_1qxs",
+  "list_of_employee"
+ ],
+ "fields": [
+  {
+   "fieldname": "ot_date",
+   "fieldtype": "Date",
+   "label": "OT Date"
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "fieldname": "purpose",
+   "fieldtype": "Small Text",
+   "label": "Purpose"
+  },
+  {
+   "fieldname": "request_by",
+   "fieldtype": "Link",
+   "label": "Request by",
+   "options": "User"
+  },
+  {
+   "fieldname": "list_of_employee",
+   "fieldtype": "Table",
+   "label": " List of Employee",
+   "options": "OT Employee"
+  },
+  {
+   "fieldname": "column_break_7hrf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_1qxs",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-05-07 12:18:10.827494",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "Over Time Plan",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

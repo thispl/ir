@@ -1,0 +1,135 @@
+{
+ "actions": [],
+ "creation": "2024-07-26 13:54:59.821676",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "employee",
+  "employee_name",
+  "department",
+  "attendance_date",
+  "attendance",
+  "workflow_state",
+  "approver_name",
+  "column_break_5",
+  "miss_punch_application",
+  "in_time",
+  "out_time",
+  "qr_shift",
+  "correction"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee ID",
+   "options": "Employee",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Department",
+   "options": "Department",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "attendance_date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "attendance",
+   "fieldtype": "Link",
+   "label": "Attendance",
+   "options": "Attendance",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "workflow_state",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "miss_punch_application",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Miss Punch Application",
+   "options": "Miss Punch Application"
+  },
+  {
+   "columns": 2,
+   "fieldname": "in_time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "IN Time"
+  },
+  {
+   "columns": 2,
+   "fieldname": "out_time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "OUT Time"
+  },
+  {
+   "columns": 1,
+   "fieldname": "qr_shift",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Shift",
+   "options": "Shift Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "correction",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Correction",
+   "options": "\nIN Time\nOUT Time\nQR Scan Time"
+  },
+  {
+   "columns": 1,
+   "fieldname": "approver_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Approver Name",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-08-01 18:40:29.321995",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "MP Child Approval",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

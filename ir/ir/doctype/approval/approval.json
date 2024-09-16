@@ -1,0 +1,119 @@
+{
+ "actions": [],
+ "allow_copy": 1,
+ "allow_rename": 1,
+ "creation": "2024-07-26 15:41:44.936474",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_2",
+  "la_approval",
+  "section_break_4",
+  "column_break_wpja",
+  "pr_approval",
+  "section_break_ivlj",
+  "od_approval",
+  "section_break_8",
+  "mp_approval",
+  "ot_approval",
+  "sr_approval"
+ ],
+ "fields": [
+  {
+   "fieldname": "la_approval",
+   "fieldtype": "Table",
+   "in_standard_filter": 1,
+   "label": "Leave Application Approval",
+   "options": "LA Approval"
+  },
+  {
+   "fieldname": "section_break_4",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "pr_approval",
+   "fieldtype": "Table",
+   "in_filter": 1,
+   "label": "Permission Request Approval",
+   "options": "PR Approval"
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "mp_approval",
+   "fieldtype": "Table",
+   "in_standard_filter": 1,
+   "label": "Miss Punch Application Approval",
+   "options": "MP Child Approval"
+  },
+  {
+   "fieldname": "ot_approval",
+   "fieldtype": "Table",
+   "in_standard_filter": 1,
+   "label": "Overtime Request Approval",
+   "options": "Overtime Approval"
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_wpja",
+   "fieldtype": "Column Break",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "sr_approval",
+   "fieldtype": "Table",
+   "label": "Shift Request Approval",
+   "options": "Shift Request Approval"
+  },
+  {
+   "fieldname": "section_break_ivlj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "od_approval",
+   "fieldtype": "Table",
+   "label": "On Duty Application Approval",
+   "options": "OD Approval Table"
+  }
+ ],
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-09-04 18:31:07.960323",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "Approval",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "First Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

@@ -1,0 +1,229 @@
+{
+ "actions": [],
+ "creation": "2024-07-26 13:51:31.015730",
+ "default_view": "List",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "leave_application",
+  "employee",
+  "employee_name",
+  "first_manager",
+  "second_manager",
+  "column_break_4",
+  "department",
+  "leave_type",
+  "workflow_state",
+  "approver_name",
+  "request_date",
+  "leave_balance",
+  "section_break_5",
+  "from_date",
+  "posting_date",
+  "to_date",
+  "half_day",
+  "half_day_date",
+  "total_leave_days",
+  "column_break1",
+  "session",
+  "description",
+  "section_break_7",
+  "leave_approver",
+  "leave_approver_name"
+ ],
+ "fields": [
+  {
+   "fieldname": "leave_application",
+   "fieldtype": "Link",
+   "label": "Leave Application",
+   "options": "Leave Application",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "fetch_from": "leave_application.employee",
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 1,
+   "fetch_from": "employee.department",
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Department",
+   "options": "Department",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "default": "2",
+   "fetch_from": "leave_application.leave_type",
+   "fieldname": "leave_type",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "in_list_view": 1,
+   "label": "Leave Type",
+   "options": "Leave Type",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "workflow_state",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "request_date",
+   "fieldtype": "Date",
+   "label": "Request Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "leave_balance",
+   "fieldtype": "Float",
+   "label": "Leave Balance Before Application",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break"
+  },
+  {
+   "columns": 1,
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "From Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "half_day",
+   "fieldtype": "Check",
+   "label": "Half Day",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.half_day && (doc.from_date != doc.to_date)",
+   "fieldname": "half_day_date",
+   "fieldtype": "Date",
+   "label": "Half Day Date",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "total_leave_days",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Total Leave Days",
+   "no_copy": 1,
+   "precision": "1",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break1",
+   "fieldtype": "Column Break",
+   "print_width": "50%",
+   "width": "50%"
+  },
+  {
+   "fieldname": "session",
+   "fieldtype": "Data",
+   "label": "Session",
+   "read_only": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Reason",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "leave_approver",
+   "fieldtype": "Link",
+   "label": "Leave Approver",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "leave_approver_name",
+   "fieldtype": "Data",
+   "label": "Leave Approver Name",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "posting_date",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Posting Date",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "approver_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Approver Name",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.custom_first_manager",
+   "fieldname": "first_manager",
+   "fieldtype": "Data",
+   "label": "First Manager"
+  },
+  {
+   "fetch_from": "employee.custom_second_manager",
+   "fieldname": "second_manager",
+   "fieldtype": "Data",
+   "label": "Second Manager"
+  }
+ ],
+ "icon": "fa fa-calendar",
+ "istable": 1,
+ "links": [],
+ "max_attachments": 3,
+ "modified": "2024-08-05 16:57:56.509212",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "LA Approval",
+ "owner": "Administrator",
+ "permissions": [],
+ "search_fields": "employee,employee_name,leave_type,from_date,to_date,total_leave_days",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "timeline_field": "employee",
+ "title_field": "employee_name"
+}

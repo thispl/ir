@@ -1,0 +1,278 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "AI-.####",
+ "creation": "2024-04-17 14:17:08.021661",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "agency_details_section",
+  "payroll_date",
+  "payroll_end_date",
+  "branch",
+  "employee_category",
+  "agency_name",
+  "cost_center",
+  "column_break_skyj",
+  "letter_head",
+  "address_line1",
+  "address_line2",
+  "contact_number1",
+  "contact_number2",
+  "column_break_cou0",
+  "email",
+  "esic",
+  "epf",
+  "gst",
+  "payment_details_section",
+  "details",
+  "section_break_2ivg",
+  "total_man_days",
+  "total_over_time",
+  "man_days_rate",
+  "travel_allowance_rate",
+  "total_mandays_amount",
+  "total_travel_allowance_amount",
+  "column_break_wwr2",
+  "taxable_amount",
+  "cgst_amount",
+  "sgst_amount",
+  "total_amount",
+  "total_amount_in_words",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "agency_details_section",
+   "fieldtype": "Section Break",
+   "label": "Agency Details"
+  },
+  {
+   "fieldname": "payroll_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Payroll Start Date"
+  },
+  {
+   "fieldname": "payroll_end_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Payroll End Date"
+  },
+  {
+   "fieldname": "branch",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Branch",
+   "options": "Branch"
+  },
+  {
+   "fieldname": "employee_category",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee Category",
+   "options": "Employee Category"
+  },
+  {
+   "fieldname": "agency_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Agency ",
+   "options": "Agency"
+  },
+  {
+   "fieldname": "column_break_skyj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "agency_name.letter_head",
+   "fieldname": "letter_head",
+   "fieldtype": "Link",
+   "label": "Letter Head",
+   "options": "Letter Head",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "agency_name.address_line_1",
+   "fieldname": "address_line1",
+   "fieldtype": "Data",
+   "label": "Address Line1",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "agency_name.address_line_2",
+   "fieldname": "address_line2",
+   "fieldtype": "Data",
+   "label": "Address Line2",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "agency_name.contact_number_1",
+   "fieldname": "contact_number1",
+   "fieldtype": "Data",
+   "label": "Contact Number1",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "agency_name.contact_number_2",
+   "fieldname": "contact_number2",
+   "fieldtype": "Data",
+   "label": "Contact Number2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_cou0",
+   "fieldtype": "Column Break",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "agency_name.email_id",
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "agency_name.esic",
+   "fieldname": "esic",
+   "fieldtype": "Data",
+   "label": "ESIC",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "agency_name.epf",
+   "fieldname": "epf",
+   "fieldtype": "Data",
+   "label": "EPF",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "agency_name.gst",
+   "fieldname": "gst",
+   "fieldtype": "Data",
+   "label": "GST",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_details_section",
+   "fieldtype": "Section Break",
+   "label": "Payment Details"
+  },
+  {
+   "fieldname": "details",
+   "fieldtype": "Table",
+   "label": "Details",
+   "options": "Contractor wise PD"
+  },
+  {
+   "fieldname": "section_break_2ivg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_man_days",
+   "fieldtype": "Int",
+   "label": "Total Man Days"
+  },
+  {
+   "fieldname": "total_over_time",
+   "fieldtype": "Float",
+   "label": "Total Over Time"
+  },
+  {
+   "fetch_from": "agency_name.billing_rate_per_manday",
+   "fieldname": "man_days_rate",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Man Days Rate"
+  },
+  {
+   "fetch_from": "agency_name.ot_amount_per_day",
+   "fieldname": "travel_allowance_rate",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Travel Allowance Rate"
+  },
+  {
+   "fieldname": "total_mandays_amount",
+   "fieldtype": "Currency",
+   "label": "Total Mandays Amount"
+  },
+  {
+   "fieldname": "total_travel_allowance_amount",
+   "fieldtype": "Currency",
+   "label": "Total Travel Allowance Amount"
+  },
+  {
+   "fieldname": "column_break_wwr2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "taxable_amount",
+   "fieldtype": "Currency",
+   "label": "Taxable Amount"
+  },
+  {
+   "fieldname": "cgst_amount",
+   "fieldtype": "Currency",
+   "label": "CGST Amount"
+  },
+  {
+   "fieldname": "sgst_amount",
+   "fieldtype": "Currency",
+   "label": "SGST Amount"
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount"
+  },
+  {
+   "fieldname": "total_amount_in_words",
+   "fieldtype": "Data",
+   "label": "Total Amount In Words"
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Agency Invoice",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-05-17 12:49:46.536372",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "Agency Invoice",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

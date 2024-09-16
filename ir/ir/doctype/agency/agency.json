@@ -1,0 +1,187 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:contractor_name",
+ "creation": "2024-04-01 15:44:11.447334",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "contractor_name",
+  "letter_head",
+  "short_code",
+  "agency_status",
+  "address_line_1",
+  "address_line_2",
+  "email_id",
+  "column_break_cnje",
+  "contact_number_1",
+  "contact_number_2",
+  "esic",
+  "epf",
+  "gst",
+  "pan",
+  "wages_section",
+  "billing_rate_per_manday",
+  "column_break_mdbv",
+  "ot_amount_per_day",
+  "section_break_ybam",
+  "agency_wages",
+  "update_salary",
+  "revised_agency_wages",
+  "branch",
+  "designation"
+ ],
+ "fields": [
+  {
+   "fieldname": "contractor_name",
+   "fieldtype": "Data",
+   "label": "Agency Name",
+   "unique": 1
+  },
+  {
+   "fieldname": "letter_head",
+   "fieldtype": "Link",
+   "label": "Letter Head",
+   "options": "Letter Head"
+  },
+  {
+   "fieldname": "short_code",
+   "fieldtype": "Data",
+   "label": "Short Code"
+  },
+  {
+   "fieldname": "agency_status",
+   "fieldtype": "Select",
+   "label": "Agency Status",
+   "options": "\nActive\nInactive"
+  },
+  {
+   "fieldname": "address_line_1",
+   "fieldtype": "Data",
+   "label": "Address Line 1"
+  },
+  {
+   "fieldname": "address_line_2",
+   "fieldtype": "Data",
+   "label": "Address Line 2"
+  },
+  {
+   "fieldname": "email_id",
+   "fieldtype": "Data",
+   "label": "Email ID"
+  },
+  {
+   "fieldname": "column_break_cnje",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "contact_number_1",
+   "fieldtype": "Data",
+   "label": "Contact Number 1"
+  },
+  {
+   "fieldname": "contact_number_2",
+   "fieldtype": "Data",
+   "label": "Contact Number 2"
+  },
+  {
+   "fieldname": "esic",
+   "fieldtype": "Data",
+   "label": "ESIC"
+  },
+  {
+   "fieldname": "epf",
+   "fieldtype": "Data",
+   "label": "EPF"
+  },
+  {
+   "fieldname": "gst",
+   "fieldtype": "Data",
+   "label": "GST"
+  },
+  {
+   "fieldname": "pan",
+   "fieldtype": "Data",
+   "label": "PAN"
+  },
+  {
+   "fieldname": "wages_section",
+   "fieldtype": "Section Break",
+   "label": "Wages"
+  },
+  {
+   "fieldname": "billing_rate_per_manday",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Billing Rate Per Manday"
+  },
+  {
+   "fieldname": "column_break_mdbv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ot_amount_per_day",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "OT Amount Per Day"
+  },
+  {
+   "fieldname": "section_break_ybam",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "agency_wages",
+   "fieldtype": "Table",
+   "label": "Agency Wages",
+   "options": "Agency Wages"
+  },
+  {
+   "fieldname": "update_salary",
+   "fieldtype": "Button",
+   "label": "Update Salary"
+  },
+  {
+   "fieldname": "revised_agency_wages",
+   "fieldtype": "Table",
+   "label": "Revised Agency Wages",
+   "options": "Agency Wages Revision"
+  },
+  {
+   "fieldname": "branch",
+   "fieldtype": "Table",
+   "label": "Branch",
+   "options": "Branch List"
+  },
+  {
+   "fieldname": "designation",
+   "fieldtype": "Table",
+   "label": "Designation",
+   "options": "Designation List"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-09-16 13:38:57.928160",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "Agency",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
