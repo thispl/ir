@@ -58,10 +58,10 @@ def mark_att_process_manual():
 
 @frappe.whitelist()
 def mark_att_process():
-    # from_date = add_days(today(),-1)  
-    # to_date = today()
-    from_date="2024-09-14"
-    to_date="2024-09-16"
+    from_date = add_days(today(),-1)  
+    to_date = today()
+    # from_date="2024-09-17"
+    # to_date="2024-09-18"
     dates = get_dates(from_date,to_date)
     dt = []
     frappe.log_error(title='dt',message=[from_date,to_date])
@@ -1147,7 +1147,6 @@ def mark_whs(from_date,to_date,employee):
                             custom_permission_hours = float(att.custom_permission_hour) if att.custom_permission_hour else 0.0
                             custom_od_time=float(att.custom_od_time) if att.custom_od_time else 0.0
                             if att.custom_attendance_permission:
-                                frappe.errprint('1')
                                 totwh=wh+custom_permission_hours
                                 if totwh >= hd_threshold:
                                     frappe.db.set_value('Attendance',att.name,'status','Present')
@@ -1930,7 +1929,7 @@ def mark_wh_without_employee(from_date,to_date):
             # frappe.db.set_value('Attendance', att.name, 'early_exit', 0)
             # frappe.db.set_value('Attendance', att.name, 'custom_early_out_time',  "00:00:00"
 
-def mark_cc(from_date, to_date):
+def mark_cc(from_date,to_date):
     attendance = frappe.db.get_all('Attendance', filters={
         'attendance_date': ['between', (from_date, to_date)],
         'docstatus': ['!=', '2']
@@ -1946,8 +1945,11 @@ def mark_cc(from_date, to_date):
                 if att.attendance_date == in_time1.date():
                     if frappe.db.exists('Canteen Coupons', {'employee': att.employee, 'date': att.attendance_date}):
                         cc = frappe.get_doc('Canteen Coupons', {'employee': att.employee, 'date': att.attendance_date})
-                        cc.save(ignore_permissions=True)
-                        frappe.db.commit()
+                        for i in cc.items:
+                            if i.item == "Dinner" or i.item =="Supper":
+                                i.status=1
+                                cc.save(ignore_permissions=True)
+                                frappe.db.commit()
                     out_time1 = datetime.combine(att.attendance_date, datetime.min.time()) + timedelta(days=1)
 
             cc_exists = frappe.db.exists('Canteen Coupons', {'employee': att.employee, 'date': att.attendance_date})
@@ -1972,19 +1974,17 @@ def mark_cc(from_date, to_date):
                 cc = frappe.get_doc('Canteen Coupons', {'employee': att.employee, 'date': att.attendance_date})
 
             
-            time_in = in_time1.time()
-            time_out = out_time1.time()
+            in_time = in_time1.strftime('%H:%M:%S')
+            out_time = out_time1.strftime('%H:%M:%S')
+            time_in = datetime.strptime(in_time, '%H:%M:%S').time()
+            time_out = datetime.strptime(out_time, '%H:%M:%S').time()
 
-            
             for item in cc.get('items'):
                 food_menu = frappe.get_doc('Food Menu', item.get('item'))
+                from_time = str(food_menu.from_time)
+                st = datetime.strptime(from_time, '%H:%M:%S').time()
 
-                
-                from_time = (datetime.min + food_menu.from_time).time()
-                to_time = (datetime.min + food_menu.to_time).time()
-
-                
-                if time_in <= to_time and time_out >= from_time:
+                if time_in <= st <= time_out:
                     item.status = 1
 
             cc.save(ignore_permissions=True)

@@ -134,9 +134,8 @@
   },
   {
    "fieldname": "attendance_marked",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "label": "Attendance Marked",
-   "options": "Attendance",
    "read_only": 1
   },
   {
@@ -199,7 +198,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-04 16:08:04.621372",
+ "modified": "2024-09-18 15:18:42.874259",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "Attendance Regularize",

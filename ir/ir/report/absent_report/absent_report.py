@@ -25,31 +25,40 @@ def get_data(filters):
     # Constructing the base query
     query = """
         SELECT 
-            employee, 
-            employee_name, 
-            department, 
-            name as attendance,
-            attendance_date,
+            a.employee, 
+            a.employee_name, 
+            a.department, 
+            a.name as attendance,
+            a.attendance_date,
+            b.employee,
+            b.shift_type,
+            b.start_date,
+            b.name,
             CASE 
-                WHEN in_time IS NULL AND out_time IS NULL THEN 'Absent'
-                WHEN in_time IS NOT NULL OR out_time IS NOT NULL THEN 'Wrong Shift'
+                WHEN a.in_time IS NULL OR a.out_time IS NULL THEN 'Absent'
+                WHEN a.shift != b.shift_type THEN 'Wrong Shift'
+                ELSE  'Absent'
+                
             END AS reason
         FROM 
-            `tabAttendance`
+            `tabAttendance` as a
+            JOIN `tabShift Assignment` as b
+            ON
+                a.employee = b.employee and a.attendance_date = b.start_date
         WHERE 
-            attendance_date BETWEEN %s AND %s
-            AND status = 'Absent'
-            AND docstatus < 2
+            a.attendance_date BETWEEN %s AND %s
+            AND a.status = 'Absent'
+            AND a.docstatus=b.docstatus < 2
     """
     query_conditions = [from_date, to_date]
 
     # Adding employee filter if specified
     if employee:
-        query += " AND employee = %s"
+        query += " AND a.employee = %s"
         query_conditions.append(employee)
 
     # Adding order by clause
-    query += " ORDER BY attendance_date"
+    query += " ORDER BY a.attendance_date"
 
     # Execute the query
     records = frappe.db.sql(query, query_conditions, as_dict=True)

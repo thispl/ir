@@ -57,15 +57,27 @@ def get_data(filters):
     
     data = []
     for record in attendance_records:
-        data.append({
-            "employee": record.employee,
-            "employee_name": record.employee_name,
-            "department": record.department,
-            "attendance_date": record.attendance_date,
-            "attendance": record.attendance,  	
-            "in_time": record.in_time or '',
-            "out_time": record.out_time or '',
-            "shift": record.shift or ''
-        })
+        if not record.in_time and record.out_time:
+            data.append({
+                "employee": record.employee,
+                "employee_name": record.employee_name,
+                "department": record.department,
+                "attendance_date": record.attendance_date,
+                "attendance": record.attendance,  	
+                "in_time": record.in_time or '',
+                "out_time": record.out_time or '',
+                "shift": record.shift or ''
+            })
+        if record.in_time and not record.out_time:
+            data.append({
+                "employee": record.employee,
+                "employee_name": record.employee_name,
+                "department": record.department,
+                "attendance_date": record.attendance_date,
+                "attendance": record.attendance,  	
+                "in_time": record.in_time or '',
+                "out_time": record.out_time or '',
+                "shift": record.shift or ''
+            })
     
     return data

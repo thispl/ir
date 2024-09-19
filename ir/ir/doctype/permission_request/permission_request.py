@@ -36,8 +36,14 @@ class PermissionRequest(Document):
                                 att_doc.shift = '2'
                                 frappe.db.set_value("Attendance",att,"shift",'2')
             if att_doc.in_time and att_doc.out_time:
-                wh = time_diff_in_hours(att_doc.out_time,att_doc.in_time)
-                diff=self.permission_request_hours
+                diff=0
+                wh = att_doc.working_hours
+                frappe.errprint(wh)
+                if self.employee_category == "Blue Collar":
+                    diff=1
+                else:
+                    diff=self.permission_request_hours
+                    frappe.errprint(diff)
                 totwh=float(wh)+float(diff)
                 if totwh>=8:
                     frappe.db.set_value("Attendance",att,"status","Present")

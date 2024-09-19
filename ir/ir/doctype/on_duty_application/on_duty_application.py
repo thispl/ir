@@ -23,17 +23,17 @@ class OnDutyApplication(Document):
     def validate(self):
         
         diff = date_diff(self.from_date,self.posting_date)
-        if diff>3:
+        if diff>4:
             frappe.throw("Only Allow to Apply for future 3 days")
-        if self.employee_category != "White Collar":
-            frappe.throw("You are not eliglible to apply")
+        # if self.employee_category != "White Collar":
+        #     frappe.throw("You are not eliglible to apply")
         diff = date_diff(self.posting_date, self.from_date)
         role = frappe.db.get_value("Has Role",{"parent":frappe.session.user,"role":"HR User"})
         if not role:
-            if diff > 3:
+            if diff > 4:
                 frappe.throw("The On Duty Application must be apply within 3 days from the worked day")
-            if diff < 0:
-                frappe.throw("Posting Date Must be greater than the working date")
+            # if diff < 0:
+            #     frappe.throw("Posting Date Must be greater than the working date")
                 
                 
         value = frappe.db.exists("Leave Application", {

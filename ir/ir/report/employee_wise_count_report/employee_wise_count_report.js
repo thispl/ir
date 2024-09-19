@@ -20,7 +20,7 @@ frappe.query_reports["Employee Wise Count Report"] = {
 		},
 		{
 			fieldname: 'employee',
-			label: __('Employee Name'),
+			label: __('Employee'),
 			fieldtype: 'Link',
 			options: 'Employee',
 		},

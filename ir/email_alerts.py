@@ -1822,7 +1822,7 @@ def wrong_shift_mail_alert_hr():
 	if no_punches:
 		staff = """
 		<div style="text-align: center;">
-			<h2 style="font-size: 16px;">No wrong shift employees for yesterday.</h2>
+			<h2 style="font-size: 16px;">No wrong shift employees for Today.</h2>
 		</div>
 		"""
 	else:
@@ -1842,7 +1842,7 @@ def wrong_shift_mail_alert_hr():
 						""".format(staff)
 			)
 		frappe.sendmail(
-				recipients=['arockia.k@groupteampro.com','sivarenisha.m@groupteampro.com','jenisha.p@groupteampro.com','sarath.v@groupteampro.com','anil.p@groupteampro.com'],
+				recipients=['sivarenisha.m@groupteampro.com','jenisha.p@groupteampro.com','sarath.v@groupteampro.com','anil.p@groupteampro.com'],
 				subject='Wrong Shift Report',
 				message="""Dear Sir,<br><br>
 						Kindly find the attached Wrong Shift Employee List for today:<br>{0}

@@ -655,11 +655,7 @@ def time_diff_in_timedelta_1(time1, time2):
     diff_timedelta = timedelta(seconds=timedelta_seconds)
     return diff_timedelta
 
-@frappe.whitelist()
-def validate_attendance_regularize_duplication(employee,att_date,docstatus):
-    exisiting=frappe.db.exists("Attendance Regularize",{'employee':employee,'attendance_date':att_date,'docstatus':('!=',2)})
-    if exisiting:
-        return "Already Applied"
+
 
 @frappe.whitelist()
 def absent_mail_alert():
@@ -694,9 +690,11 @@ def absent_mail_alert():
         
         if not att.in_time or not att.out_time:
             reason = "Absent"
-        elif att.shift !=shift:
-            reason = "Wrong Shift" 
-              
+        elif att.shift:
+            if att.shift !=shift:
+                reason = "Wrong Shift" 
+            else:
+                reason = "Absent"      
         staff += """
         <tr style="border: 1px solid black;">
             <td style="padding: 4px; border: 1px solid black;">{0}</td>
@@ -2205,80 +2203,75 @@ def cron_job_late_entry_for_evng_shift():
     # checkin = frappe.db.sql("""update `tabAttendance` set status = 'Present' where name= 'HR-ATT-2024-44664' """,as_dict = True)
     
     
-import frappe
-from datetime import datetime, timedelta
+# import frappe
+# from datetime import datetime, timedelta
 
-@frappe.whitelist()
-def mark_cc():
-    from_date = '2024-08-19'
-    to_date = '2024-08-19'
+# @frappe.whitelist()
+# def mark_cc(from_date,to_date):
+#     attendance = frappe.db.get_all('Attendance', filters={
+#         'attendance_date': ['between', (from_date, to_date)],
+#         'docstatus': ['!=', '2']
+#     }, fields=['name', 'shift', 'in_time', 'out_time', 'employee', 'custom_on_duty_application', 'employee_name', 'department', 'attendance_date', 'status'])
 
-    # Fetch attendance records within the given date range
-    attendance = frappe.db.get_all('Attendance', filters={
-        'attendance_date': ['between', (from_date, to_date)],
-        'docstatus': ['!=', '2'],
-        'name': 'HR-ATT-2024-49617'
-    }, fields=['name', 'shift', 'in_time', 'out_time', 'employee', 'custom_on_duty_application', 'employee_name', 'department', 'attendance_date', 'status'])
+#     for att in attendance:
+#         in_time1 = att.in_time
+#         out_time1 = att.out_time
 
-    for att in attendance:
-        in_time1 = att.in_time
-        out_time1 = att.out_time
+#         if in_time1 and out_time1:
 
-        if in_time1 and out_time1:
+            
+#             if in_time1.date() != out_time1.date():
+#                 if att.attendance_date == in_time1.date():
+#                     out_time1 = datetime.combine(att.attendance_date, datetime.min.time()) + timedelta(days=1)
 
-            # If in_time and out_time fall on different dates, adjust out_time
-            if in_time1.date() != out_time1.date():
-                if att.attendance_date == in_time1.date():
-                    out_time1 = datetime.combine(att.attendance_date, datetime.min.time()) + timedelta(days=1)
+            
+#             shift_doc = frappe.get_value('Shift Type', {'name': att.shift}, ['custom_night_shift'])
+#             if shift_doc == 1:
+               
+#                 cc_exists = frappe.db.exists('Canteen Coupons', {'employee': att.employee, 'date': att.attendance_date})
+#                 if not cc_exists:
+                    
+#                     cc = frappe.new_doc('Canteen Coupons')
+#                     cc.employee = att.employee
+#                     cc.employee_name = att.employee_name
+#                     cc.department = att.department
+#                     cc.date = att.attendance_date
+#                     cc.attendance = att.name
 
-            # Check if the shift is marked as a custom night shift
-            shift_doc = frappe.get_value('Shift Type', {'name': att.shift}, ['custom_night_shift'])
-            if shift_doc == 1:
-                # Check if a canteen coupon already exists for the employee on the given date
-                cc_exists = frappe.db.exists('Canteen Coupons', {'employee': att.employee, 'date': att.attendance_date})
-                if not cc_exists:
-                    # Create a new Canteen Coupon document
-                    cc = frappe.new_doc('Canteen Coupons')
-                    cc.employee = att.employee
-                    cc.employee_name = att.employee_name
-                    cc.department = att.department
-                    cc.date = att.attendance_date
-                    cc.attendance = att.name
+                   
+#                     items_to_add = []
+#                     fm = frappe.db.sql("""SELECT * FROM `tabFood Menu` ORDER BY serial_no""", as_dict=True)
+#                     for f in fm:
+#                         items_to_add.append({
+#                             'item': f.name,
+#                             'status': 0
+#                         })
 
-                    # Add items to the canteen coupon
-                    items_to_add = []
-                    fm = frappe.db.sql("""SELECT * FROM `tabFood Menu` ORDER BY serial_no""", as_dict=True)
-                    for f in fm:
-                        items_to_add.append({
-                            'item': f.name,
-                            'status': 0
-                        })
+#                     cc.set('items', items_to_add)
+#                 else:
+                    
+#                     cc = frappe.get_doc('Canteen Coupons', {'employee': att.employee, 'date': att.attendance_date})
 
-                    cc.set('items', items_to_add)
-                else:
-                    # Retrieve the existing Canteen Coupon document
-                    cc = frappe.get_doc('Canteen Coupons', {'employee': att.employee, 'date': att.attendance_date})
+                
+#                 time_in = in_time1.time()
+#                 time_out = out_time1.time()
 
-                # Calculate in_time and out_time as time objects
-                time_in = in_time1.time()
-                time_out = out_time1.time()
+               
+#                 for item in cc.get('items'):
+#                     food_menu = frappe.get_doc('Food Menu', item.get('item'))
 
-                # Update the status of items based on time
-                for item in cc.get('items'):
-                    food_menu = frappe.get_doc('Food Menu', item.get('item'))
+#                     from_time = (datetime.min + food_menu.from_time).time()
+#                     to_time = (datetime.min + food_menu.to_time).time()
 
-                    from_time = (datetime.min + food_menu.from_time).time()
-                    to_time = (datetime.min + food_menu.to_time).time()
+                   
+#                     if time_in <= to_time and time_out >= from_time:
+#                         item.status = 1
+#                     elif item.item == "Dinner" and time_out <= to_time:
+#                         item.status = 1
 
-                    # Check if the item should be marked as available
-                    if time_in <= to_time and time_out >= from_time:
-                        item.status = 1
-                    elif item.item == "Dinner" and time_out <= to_time:
-                        item.status = 1
-
-                # Save the updated Canteen Coupon document
-                cc.save(ignore_permissions=True)
-                frappe.db.commit()
+                
+#                 cc.save(ignore_permissions=True)
+#                 frappe.db.commit()
 
 
 
@@ -2392,4 +2385,6 @@ def check_on_duty(doc, method):
 
     if value:
         frappe.throw("You have already applied for an On Duty Application for the same or overlapping date range.")
-
+        
+        
+                

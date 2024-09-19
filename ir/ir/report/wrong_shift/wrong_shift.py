@@ -36,9 +36,9 @@ def get_data(filters):
             `tabAttendance`
         WHERE 
             attendance_date BETWEEN %s AND %s
-            AND docstatus != 2
+            AND docstatus != 2 and shift !=%s
     """
-    query_conditions = [from_date, to_date]
+    query_conditions = [from_date, to_date,'']
 
     # Adding employee filter if specified
     if employee:

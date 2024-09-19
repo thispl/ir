@@ -14,6 +14,7 @@
   "approver_name",
   "from_date",
   "to_date",
+  "od_time",
   "vehicle_request",
   "column_break_8",
   "from_time",
@@ -141,12 +142,19 @@
    "fieldtype": "Small Text",
    "label": "Purpose",
    "read_only": 1
+  },
+  {
+   "fieldname": "od_time",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "OD Time",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-09-04 18:30:43.630769",
+ "modified": "2024-09-17 17:58:12.967449",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "OD Approval Table",
