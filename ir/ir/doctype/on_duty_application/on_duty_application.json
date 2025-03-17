@@ -29,6 +29,7 @@
   "from_time",
   "to_time",
   "vehicle_request",
+  "ot_applicable",
   "section_break_0l7g",
   "multi_employee",
   "section_break_rcsj",
@@ -340,13 +341,21 @@
   {
    "fieldname": "od_time",
    "fieldtype": "Float",
-   "label": "OD Time"
+   "label": "OD Time",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "ot_applicable",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "OT Applicable"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-10 15:16:24.222695",
+ "modified": "2025-02-17 10:02:39.350737",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "On Duty Application",
@@ -368,5 +377,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

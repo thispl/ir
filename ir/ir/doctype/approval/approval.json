@@ -16,7 +16,8 @@
   "section_break_8",
   "mp_approval",
   "ot_approval",
-  "sr_approval"
+  "sr_approval",
+  "compoff_approval"
  ],
  "fields": [
   {
@@ -79,13 +80,19 @@
    "fieldtype": "Table",
    "label": "On Duty Application Approval",
    "options": "OD Approval Table"
+  },
+  {
+   "fieldname": "compoff_approval",
+   "fieldtype": "Table",
+   "label": "Compensatory Off Request Approval",
+   "options": "Comp-off Table"
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-09-04 18:31:07.960323",
+ "modified": "2024-09-28 12:21:22.798343",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "Approval",
@@ -108,6 +115,7 @@
    "print": 1,
    "read": 1,
    "role": "First Manager",
+   "select": 1,
    "share": 1,
    "write": 1
   }

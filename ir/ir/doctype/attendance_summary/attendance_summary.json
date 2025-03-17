@@ -69,7 +69,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-06-13 11:33:58.233623",
+ "modified": "2024-10-25 17:47:20.904207",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "Attendance Summary",
@@ -88,5 +88,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

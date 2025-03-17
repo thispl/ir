@@ -123,9 +123,23 @@ frappe.ui.form.on('On Duty Application', {
 		}
 	},
 	diff_calculation: function (frm) {
-		if (frm.doc.from_date && frm.doc.to_date && frm.doc.employee) {
+		if (frm.doc.from_date && frm.doc.to_date && frm.doc.employee && frm.doc.custom_shift != "2") {
 			frappe.call({
 				"method": 'ir.ir.doctype.on_duty_application.on_duty_application.get_time_diff',
+				args: {
+					"from_time": frm.doc.from_time,
+					"to_time": frm.doc.to_time,
+				},
+				callback: function (r) {
+					if (r.message) {
+						frm.set_value('od_time', r.message);
+					}
+				}
+			});
+		}
+		if (frm.doc.from_date && frm.doc.to_date && frm.doc.employee && frm.doc.custom_shift == "2") {
+			frappe.call({
+				"method": 'ir.ir.doctype.on_duty_application.on_duty_application.get_time_diff_2',
 				args: {
 					"from_time": frm.doc.from_time,
 					"to_time": frm.doc.to_time,

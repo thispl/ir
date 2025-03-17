@@ -13,7 +13,13 @@
   "mandays_amount",
   "total_overtime",
   "travel_allowance_amount",
-  "service_charges"
+  "service_charges",
+  "column_break_g7no",
+  "ot_rate",
+  "ot_hours",
+  "ot_amount",
+  "attendance_bonus_amount",
+  "canteen_amount"
  ],
  "fields": [
   {
@@ -21,7 +27,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_preview": 1,
-   "label": "Designation",
+   "label": "Salary Category",
    "options": "Designation"
   },
   {
@@ -70,12 +76,41 @@
    "fieldname": "service_charges",
    "fieldtype": "Currency",
    "label": "Service Charges"
+  },
+  {
+   "fieldname": "column_break_g7no",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ot_rate",
+   "fieldtype": "Data",
+   "label": "OT Rate"
+  },
+  {
+   "fieldname": "ot_hours",
+   "fieldtype": "Time",
+   "label": " OT Hours"
+  },
+  {
+   "fieldname": "ot_amount",
+   "fieldtype": "Currency",
+   "label": "OT Amount"
+  },
+  {
+   "fieldname": "attendance_bonus_amount",
+   "fieldtype": "Currency",
+   "label": "Attendance Bonus Amount"
+  },
+  {
+   "fieldname": "canteen_amount",
+   "fieldtype": "Currency",
+   "label": "Canteen Amount"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-05-17 12:40:25.454509",
+ "modified": "2025-02-20 15:15:06.402660",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "Contractor wise PD",

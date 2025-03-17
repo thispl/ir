@@ -23,8 +23,9 @@ def enqueue_create_attendance(from_date,to_date):
 	) 
 	return 'OK'
 
+#Get the all attendance between given date and submit
 @frappe.whitelist()
 def get_attendance(from_date,to_date):
-	draft_doc = frappe.get_all("Attendance", {'attendance_date': ('between', (from_date,to_date)),'docstatus':0},"name")
+	draft_doc = frappe.get_all("Attendance", {'attendance_date': ('between', (from_date,to_date)),'docstatus':0,'custom_employee_category': ['!=', '']},"name")
 	for i in draft_doc:
 		frappe.db.set_value("Attendance",i.name,"docstatus",1)

@@ -1,0 +1,127 @@
+{
+ "actions": [],
+ "creation": "2024-09-24 10:33:01.079737",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "report",
+  "download",
+  "converted_to_text_file",
+  "attach",
+  "column_break_3",
+  "from_date",
+  "to_date",
+  "employee",
+  "employee_name",
+  "department",
+  "employee_category",
+  "bank"
+ ],
+ "fields": [
+  {
+   "fieldname": "report",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Report",
+   "options": "\nLeave Report\nBank Statement\nPF Report\nPF Text File\nPF Monthly\nESI Monthly\nProduction Incentive\nAttendance Bonus\nAttendance Register\nSalary Register",
+   "reqd": 1
+  },
+  {
+   "fieldname": "download",
+   "fieldtype": "Button",
+   "label": "Download"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.report == \"Bank Statement\" || doc.report == \"Attendance Register\"",
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "From Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "To Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "depends_on": "eval:doc.report == \"Bank Statement\"",
+   "fieldname": "employee_category",
+   "fieldtype": "Link",
+   "label": "Employee Category",
+   "options": "Employee Category"
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Employee Name",
+   "options": "Employee",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.report == \"Bank Statement\"",
+   "fieldname": "bank",
+   "fieldtype": "Data",
+   "label": "Bank"
+  },
+  {
+   "depends_on": "eval:doc.report=='PF Text File'",
+   "fieldname": "converted_to_text_file",
+   "fieldtype": "Button",
+   "label": "Converted To Text File"
+  },
+  {
+   "depends_on": "eval:doc.report == \"Attendance Register\"",
+   "fieldname": "attach",
+   "fieldtype": "Attach"
+  }
+ ],
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-12-10 15:40:16.730309",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "Leave Reports Dashboard",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

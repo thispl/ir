@@ -310,7 +310,6 @@ def get_holiday(holiday_list, month):
 		if d:
 			holiday_map.setdefault(d, frappe.db.sql('''select day(holiday_date), weekly_off from `tabHoliday`
 				where parent=%s and month(holiday_date)=%s''', (d, month)))
-	frappe.errprint(holiday_map)
 	return holiday_map
 
 @frappe.whitelist()

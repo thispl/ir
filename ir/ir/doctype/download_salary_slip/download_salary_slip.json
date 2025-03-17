@@ -58,6 +58,7 @@
    "reqd": 1
   },
   {
+   "depends_on": "eval:doc.month && doc.year",
    "fieldname": "download",
    "fieldtype": "Button",
    "label": "Download"
@@ -74,7 +75,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-07-18 19:54:34.942002",
+ "modified": "2025-01-21 18:49:45.120612",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "Download Salary Slip",
@@ -93,5 +94,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

@@ -88,7 +88,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-08-13 20:53:45.365092",
+ "modified": "2024-10-25 17:47:20.126350",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "Canteen Coupons",
@@ -110,5 +110,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

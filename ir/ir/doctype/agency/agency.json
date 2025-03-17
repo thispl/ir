@@ -20,6 +20,7 @@
   "epf",
   "gst",
   "pan",
+  "including_holiday",
   "wages_section",
   "billing_rate_per_manday",
   "column_break_mdbv",
@@ -155,13 +156,19 @@
   {
    "fieldname": "designation",
    "fieldtype": "Table",
-   "label": "Designation",
+   "label": "Salary Category",
    "options": "Designation List"
+  },
+  {
+   "default": "0",
+   "fieldname": "including_holiday",
+   "fieldtype": "Check",
+   "label": "Including Holiday"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-16 13:38:57.928160",
+ "modified": "2025-02-20 15:46:16.592068",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "Agency",
@@ -183,5 +190,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

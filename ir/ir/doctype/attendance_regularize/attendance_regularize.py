@@ -95,18 +95,15 @@ class AttendanceRegularize(Document):
 	# 							minutes = ot_hours.minute
 	# 							seconds = ot_hours.second
 	# 							hr = hours + minutes / 60 + seconds / 3600
-	# 							frappe.errprint(hr)
 	# 						else:
 	# 							hr = 0
 	# 						ot_hr = round(hr)
-	# 						frappe.errprint(ot_hr)
 	# 						ot_hours = "00:00:00"
 	# 					else:
 	# 						ot_hr = '0.0'
 	# 				else:
 	# 					ot_hours = "00:00:00"
 	# 				if shift_et < out_time:	
-	# 					frappe.errprint(ot_hr)	
 	# 				frappe.db.set_value("Attendance",att.name,"custom_over_time_hours",ot_hr)         
 						
 	# 			else:
@@ -158,33 +155,33 @@ class AttendanceRegularize(Document):
 	# 	if attendance_obj.docstatus ==1:
 	# 		attendance_obj.cancel()
 	# 		to_date = add_days(self.attendance_date,1)
-	# 		frappe.errprint(to_date)
 	# 		update_att_with_employee(self.attendance_date, to_date, self.employee)
 	# 	if attendance_obj.docstatus ==0:
 	# 		frappe.db.sql("""DELETE FROM `tabAttendance` WHERE name = %s""", (attendance_obj.name,), as_dict=True)
 	# 		to_date = add_days(self.attendance_date,1)
 	# 		update_att_with_employee(self.attendance_date, to_date, self.employee)
 			
+#Get the shift details and set into attendance
 @frappe.whitelist()
 def get_assigned_shift_details(emp,att_date):
 	datalist = []
 	data = {}
 	assigned_shift = frappe.get_value("Employee",{'name':emp},['default_shift'])
-	if assigned_shift != ' ':
+	if assigned_shift != '':
 		shift_in_time = frappe.db.get_value('Shift Type',{'name':assigned_shift},['start_time'])
 		shift_out_time = frappe.db.get_value('Shift Type',{'name':assigned_shift},['end_time'])
 	else:
-		shift_in_time = ' '
-		shift_out_time = ' '
+		shift_in_time = ''
+		shift_out_time = ''
 	if frappe.db.exists('Attendance',{'employee':emp,'attendance_date':att_date,'docstatus':("!=",2)}):
 		if frappe.db.get_value('Attendance',{'employee':emp,'attendance_date':att_date,'docstatus':("!=",2)},['in_time']):
 			first_in_time = frappe.db.get_value('Attendance',{'employee':emp,'attendance_date':att_date,'docstatus':("!=",2)},['in_time'])
 		else:
-			first_in_time = ' ' 
+			first_in_time = '' 
 		if frappe.db.get_value('Attendance',{'employee':emp,'attendance_date':att_date,'docstatus':("!=",2)},['out_time']):
 			last_out_time = frappe.db.get_value('Attendance',{'employee':emp,'attendance_date':att_date,'docstatus':("!=",2)},['out_time'])  
 		else:
-			last_out_time = ' '
+			last_out_time = ''
 		if frappe.db.get_value('Attendance',{'employee':emp,'attendance_date':att_date,'docstatus':("!=",2)},['custom_ot_hours']):
 			ot_hrs = frappe.db.get_value('Attendance',{'employee':emp,'attendance_date':att_date,'docstatus':("!=",2)},['custom_ot_hours'])  
 		else:
@@ -192,13 +189,13 @@ def get_assigned_shift_details(emp,att_date):
 		if frappe.db.get_value('Attendance',{'employee':emp,'attendance_date':att_date,'docstatus':("!=",2)},['shift']):
 			attendance_shift = frappe.db.get_value('Attendance',{'employee':emp,'attendance_date':att_date,'docstatus':("!=",2)},['shift'])   
 		else:
-			attendance_shift = ' '
+			attendance_shift = ''
 		attendance_marked = frappe.db.get_value('Attendance',{'employee':emp,'attendance_date':att_date,'docstatus':("!=",2)},['name'])
 		data.update({
-			'assigned_shift':assigned_shift or ' ',
+			'assigned_shift':assigned_shift or '',
 			'shift_in_time':shift_in_time or '00:00:00',
 			'shift_out_time':shift_out_time or '00:00:00',
-			'attendance_shift':attendance_shift or ' ',
+			'attendance_shift':attendance_shift or '',
 			'first_in_time':first_in_time,
 			'last_out_time':last_out_time,
 			'attendance_marked':attendance_marked,
@@ -209,8 +206,8 @@ def get_assigned_shift_details(emp,att_date):
 	else:
 		frappe.throw(_("Attendance not Marked"))
 
-def time_diff_in_timedelta(time1, time2):
-		return time2 - time1
+# def time_diff_in_timedelta(time1, time2):
+# 		return time2 - time1
 
 @frappe.whitelist()
 def check_holiday(date,emp):
@@ -225,15 +222,15 @@ def check_holiday(date,emp):
 			else:
 				return "HH"
 
-def time_diff_in_timedelta_1(time1, time2):
-	datetime1 = datetime.combine(datetime.min, time1)
-	datetime2 = datetime.combine(datetime.min, time2)
-	timedelta_seconds = (datetime2 - datetime1).total_seconds()
-	diff_timedelta = timedelta(seconds=timedelta_seconds)
-	return diff_timedelta
+# def time_diff_in_timedelta_1(time1, time2):
+# 	datetime1 = datetime.combine(datetime.min, time1)
+# 	datetime2 = datetime.combine(datetime.min, time2)
+# 	timedelta_seconds = (datetime2 - datetime1).total_seconds()
+# 	diff_timedelta = timedelta(seconds=timedelta_seconds)
+# 	return diff_timedelta
 
 	
-
+#Avoid duplication entry
 @frappe.whitelist()
 def validate_attendance_regularize_duplication(employee,att_date,docstatus):
 	exisiting=frappe.db.exists("Attendance Regularize",{'employee':employee,'attendance_date':att_date,'docstatus':('!=',2)})

@@ -62,7 +62,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-04-05 17:47:41.587916",
+ "modified": "2024-10-25 17:47:21.754810",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "Canteen",
@@ -84,5 +84,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

@@ -12,7 +12,7 @@ from frappe.utils import today,flt,add_days,date_diff,getdate,cint,formatdate, g
     comma_or, get_fullname
 from frappe.utils import get_first_day, get_last_day, format_datetime,get_url_to_form
 from frappe import enqueue
-from ir.mark_attendance import update_att_with_employee
+from ir.mark_attendance import update_on_duty
 
 class LeaveApproverIdentityError(frappe.ValidationError): pass
 class OverlapError(frappe.ValidationError): pass
@@ -21,7 +21,9 @@ class AttendanceAlreadyMarkedError(frappe.ValidationError): pass
 
 class OnDutyApplication(Document):
     def validate(self):
-        
+        if self.is_new():
+            if frappe.db.exists("On Duty Application",{"employee":self.employee,"from_date":self.from_date,"workflow_state":("!=","Rejected"),"docstatus":("!=",2)}):
+                frappe.throw("You are Already Applied for this date")
         diff = date_diff(self.from_date,self.posting_date)
         if diff>4:
             frappe.throw("Only Allow to Apply for future 3 days")
@@ -69,10 +71,27 @@ class OnDutyApplication(Document):
             att = frappe.db.exists("Attendance",{"attendance_date":self.from_date,"employee":self.employee,"docstatus":["!=","2"]})
             if att:
                 doc = frappe.get_doc("Attendance",att)
-                frappe.errprint(doc)
                 if doc.docstatus == 0:
                     if self.from_date_session=="Full Day":
-                        doc.status = 'Present'
+                        if doc.in_time and doc.out_time:
+                            wh = time_diff_in_hours(doc.out_time,doc.in_time)
+                            diff=time_diff_in_hours(self.to_time,self.from_time)
+                            totwh=float(wh)+float(diff)
+                            if totwh>=8:
+                                doc.status = 'Present'
+                            elif 8<totwh>=4:
+                                doc.status = 'Half Day'
+                            else:
+                                doc.status ="Absent"
+                        else:
+                            diff=time_diff_in_hours(self.to_time,self.from_time)
+                            totwh=float(diff)
+                            if totwh>=8:
+                                doc.status = 'Present'
+                            elif 8<totwh>=4:
+                                doc.status = 'Half Day'
+                            else:
+                                doc.status ="Absent"
                     else:
                         if doc.in_time and doc.out_time:
                             wh = time_diff_in_hours(doc.out_time,doc.in_time)
@@ -80,10 +99,19 @@ class OnDutyApplication(Document):
                             totwh=float(wh)+float(diff)
                             if totwh>=8:
                                 doc.status = 'Present'
-                            else:
+                            elif 8<totwh>=4:
                                 doc.status = 'Half Day'
+                            else:
+                                doc.status ="Absent"
                         else:
-                            doc.status = 'Half Day'
+                            diff=time_diff_in_hours(self.to_time,self.from_time)
+                            totwh=float(diff)
+                            if totwh>=8:
+                                doc.status = 'Present'
+                            elif 8<totwh>=4:
+                                doc.status = 'Half Day'
+                            else:
+                                doc.status ="Absent"
                     hh = check_holiday(self.employee,self.from_date)
                     if hh:
                         if hh == 'WW':
@@ -94,30 +122,42 @@ class OnDutyApplication(Document):
                         doc.shift_status = "OD"
                     doc.custom_on_duty_application= self.name
                     if self.from_date_session == "First Half":
-                        frappe.errprint("self.from_date_session")
                         if doc.custom_late_entry_time != "00:00:00":
-                            frappe.errprint(doc.custom_late_entry_time)
                             value = doc.custom_ot_hours
                             total_seconds = value.total_seconds()
                             hr = int(total_seconds // 3600)    
-                            frappe.errprint(self.od_time)
-                            frappe.errprint(hr)
                             if int(self.od_time) >= hr:
-                                frappe.errprint(self.od_time)
                                 if doc.shift == '3':
-                                    frappe.errprint("3")
                                     doc.shift = '2'
                     doc.save(ignore_permissions=True)
-                    doc.submit()
-                    frappe.db.commit()
+                    if doc.status =="Present":
+                        doc.submit()
+                        frappe.db.commit()
                 elif doc.docstatus == 1:
-                    doc.cancel()
-                    frappe.errprint(doc.name)
-                    doc = frappe.new_doc("Attendance")
-                    doc.employee = self.employee
-                    doc.attendance_date = date
+                    # doc.cancel()
+                    # doc = frappe.new_doc("Attendance")
+                    # doc.employee = self.employee
+                    # doc.attendance_date = date
                     if self.from_date_session=="Full Day":
-                        doc.status = 'Present'
+                        if doc.in_time and doc.out_time:
+                            wh = time_diff_in_hours(doc.out_time,doc.in_time)
+                            diff=time_diff_in_hours(self.to_time,self.from_time)
+                            totwh=float(wh)+float(diff)
+                            if totwh>=8:
+                                doc.status = 'Present'
+                            elif 8<totwh>=4:
+                                doc.status = 'Half Day'
+                            else:
+                                doc.status ="Absent"
+                        else:
+                            diff=time_diff_in_hours(self.to_time,self.from_time)
+                            totwh=float(diff)
+                            if totwh>=8:
+                                doc.status = 'Present'
+                            elif 8<totwh>=4:
+                                doc.status = 'Half Day'
+                            else:
+                                doc.status ="Absent"
                     else:
                         if doc.in_time and doc.out_time:
                             wh = time_diff_in_hours(doc.out_time,doc.in_time)
@@ -125,10 +165,19 @@ class OnDutyApplication(Document):
                             totwh=float(wh)+float(diff)
                             if totwh>=8:
                                 doc.status = 'Present'
-                            else:
+                            elif 8<totwh>=4:
                                 doc.status = 'Half Day'
+                            else:
+                                doc.status ="Absent"
                         else:
-                            doc.status = 'Half Day'
+                            diff=time_diff_in_hours(self.to_time,self.from_time)
+                            totwh=float(diff)
+                            if totwh>=8:
+                                doc.status = 'Present'
+                            elif 8<totwh>=4:
+                                doc.status = 'Half Day'
+                            else:
+                                doc.status ="Absent"
                     hh = check_holiday(self.employee,date)
                     if hh:
                         if hh == 'WW':
@@ -139,30 +188,61 @@ class OnDutyApplication(Document):
                         doc.shift_status = "OD"
                     doc.custom_on_duty_application = self.name
                     if self.from_date_session == "First Half":
-                        frappe.errprint("self.from_date_session")
                         if doc.custom_late_entry_time != "00:00:00":
-                            frappe.errprint(doc.custom_late_entry_time)
                             value = doc.custom_ot_hours
                             total_seconds = value.total_seconds()
                             hr = int(total_seconds // 3600)    
-                            frappe.errprint(self.od_time)
-                            frappe.errprint(hr)
                             if int(self.od_time) >= hr:
-                                frappe.errprint(self.od_time)
                                 if doc.shift == '3':
-                                    frappe.errprint("3")
                                     doc.shift = '2'
                     doc.save(ignore_permissions=True)
-                    doc.submit()
-                    frappe.db.commit()
+                    if doc.status =="Present":
+                        doc.submit()
+                        frappe.db.commit()
             else:
                 doc=frappe.new_doc('Attendance')
                 doc.employee=self.employee
                 doc.attendance_date=self.from_date
                 if self.from_date_session=="Full Day":
-                    doc.status = 'Present'
+                    if doc.in_time and doc.out_time:
+                        wh = time_diff_in_hours(doc.out_time,doc.in_time)
+                        diff=time_diff_in_hours(self.to_time,self.from_time)
+                        totwh=float(wh)+float(diff)
+                        if totwh>=8:
+                            doc.status = 'Present'
+                        elif 8<totwh>=4:
+                            doc.status = 'Half Day'
+                        else:
+                            doc.status ="Absent"
+                    else:
+                        diff=time_diff_in_hours(self.to_time,self.from_time)
+                        totwh=float(diff)
+                        if totwh>=8:
+                            doc.status = 'Present'
+                        elif 8<totwh>=4:
+                            doc.status = 'Half Day'
+                        else:
+                            doc.status ="Absent" 
                 else:
-                    doc.status = 'Half Day'
+                    if doc.in_time and doc.out_time:
+                        wh = time_diff_in_hours(doc.out_time,doc.in_time)
+                        diff=time_diff_in_hours(self.to_time,self.from_time)
+                        totwh=float(wh)+float(diff)
+                        if totwh>=8:
+                            doc.status = 'Present'
+                        elif 8<totwh>=4:
+                            doc.status = 'Half Day'
+                        else:
+                            doc.status ="Absent"
+                    else:
+                        diff=time_diff_in_hours(self.to_time,self.from_time)
+                        totwh=float(diff)
+                        if totwh>=8:
+                            doc.status = 'Present'
+                        elif 4 <= totwh <= 8:
+                            doc.status = 'Half Day'
+                        else:
+                            doc.status ="Absent" 
                 hh = check_holiday(self.employee, date)
                 if hh:
                     if hh=='WW':
@@ -174,29 +254,23 @@ class OnDutyApplication(Document):
                 doc.custom_on_duty_application=self.name
                 doc.custom_total_working_hours = "00:00:00"
                 doc.custom_ot_hours = "00:00:00"
-                if self.from_date_session == "First Half":
-                        frappe.errprint("self.from_date_session")
-                        if doc.custom_late_entry_time != "00:00:00":
-                            frappe.errprint(doc.custom_late_entry_time)
-                            value = doc.custom_ot_hours
-                            total_seconds = value.total_seconds()
-                            hr = int(total_seconds // 3600)    
-                            frappe.errprint(self.od_time)
-                            frappe.errprint(hr)
-                            if int(self.od_time) >= hr:
-                                frappe.errprint(self.od_time)
-                                if doc.shift == '3':
-                                    frappe.errprint("3")
-                                    doc.shift = '2'
+                if self.from_date_session == "First Half" and doc.name:
+                    if doc.custom_late_entry_time != "00:00:00":
+                        value = doc.custom_ot_hours
+                        total_seconds = value.total_seconds()
+                        hr = int(total_seconds // 3600)    
+                        if int(self.od_time) >= hr:
+                            if doc.shift == '3':
+                                doc.shift = '2'
                 doc.save(ignore_permissions=True)
-                doc.submit()
-                frappe.db.commit()            
+                if doc.status =="Present":
+                    doc.submit()
+                    frappe.db.commit()            
                             
 
 
     # def on_cancel(self):
     #     attendance_list =frappe.get_doc("On Duty Application",self.name)
-    #     # frappe.errprint("hi")
     #     for i in self.multi_employee:
     #         att = frappe.get_doc("Attendance",self.name)
     #         if att:
@@ -219,9 +293,9 @@ class OnDutyApplication(Document):
             if attendance_obj.docstatus ==1:
                 attendance_obj.cancel()
             if attendance_obj.docstatus ==0:
-                frappe.db.sql("""DELETE FROM `tabAttendance` WHERE name = %s""", (attendance_obj.name,), as_dict=True)
-            to_date = add_days(self.from_date,1)
-            update_att_with_employee(self.from_date, to_date, self.employee)
+                frappe.db.sql("""DELETE FROM `tabAttendance` WHERE custom_on_duty_application = %s""", (self.name))
+                to_date = add_days(self.from_date,1)
+                update_on_duty(self.from_date, to_date, self.employee)
                 
 
     def after_insert(self):
@@ -340,10 +414,32 @@ def get_number_of_leave_days(employee, from_date, to_date,from_date_session=None
         if from_date_session == "Second Half" and to_date_session == "First Half":
             number_of_days = flt(date_dif) - 1
     return number_of_days
+
 @frappe.whitelist()
 def get_time_diff(from_time,to_time):
     total_hours = time_diff_in_hours(to_time,from_time)
     return total_hours
+
+@frappe.whitelist()
+def get_time_diff_2(from_time, to_time):
+    from datetime import datetime, timedelta
+
+    def parse_time(time_str):
+        try:
+            return datetime.strptime(time_str, "%H:%M")
+        except ValueError:
+            return datetime.strptime(time_str, "%H:%M:%S")
+
+    from_time = parse_time(from_time)
+    to_time = parse_time(to_time)
+
+    if to_time < from_time:
+        to_time += timedelta(days=1)
+
+    total_hours = (to_time - from_time).seconds / 3600
+    return total_hours
+
+
 @frappe.whitelist()
 def check_attendance(employee, from_date, to_date):
     if employee:
@@ -355,14 +451,12 @@ def check_attendance(employee, from_date, to_date):
 @frappe.whitelist()
 def validate_cutoff(from_date):
     cur_mon = datetime.strptime(today(), "%Y-%m-%d").strftime("%B")
-    frappe.errprint(cur_mon)
     c = frappe.get_value("Application Cut Off Date",{'month':cur_mon},['cut_off_date','from_date','to_date'])
     curday = date.today()
     fromdate = datetime.strptime(str(from_date),"%Y-%m-%d").date()
     if fromdate < c[1]:
         return 'Expired'
-    if fromdate > c[1] and fromdate < c[2]:
-        frappe.errprint('true')
+    
 
 @frappe.whitelist()
 def get_employees():

@@ -1,0 +1,113 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-12-16 17:34:13.474067",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_y4yv",
+  "la_approval",
+  "section_break_gpol",
+  "column_break_6lam",
+  "pr_approval",
+  "section_break_kmdo",
+  "od_approval",
+  "section_break_zhsd",
+  "mp_approval",
+  "ot_approval",
+  "sr_approval"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_y4yv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "la_approval",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Leave Application Approval",
+   "options": "LA Approval"
+  },
+  {
+   "fieldname": "section_break_gpol",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_6lam",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pr_approval",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "in_filter": 1,
+   "label": "Permission Request Approval",
+   "options": "PR Approval"
+  },
+  {
+   "fieldname": "section_break_kmdo",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "od_approval",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "in_standard_filter": 1,
+   "label": "On Duty Application Approval",
+   "options": "OD Approval Table"
+  },
+  {
+   "fieldname": "section_break_zhsd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "mp_approval",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "in_standard_filter": 1,
+   "label": "Miss Punch Application Approval",
+   "options": "MP Child Approval"
+  },
+  {
+   "fieldname": "ot_approval",
+   "fieldtype": "Table",
+   "in_standard_filter": 1,
+   "label": "Overtime Request Approval",
+   "options": "Overtime Approval"
+  },
+  {
+   "fieldname": "sr_approval",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Shift Request Approval",
+   "options": "Shift Request Approval"
+  }
+ ],
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-12-16 20:39:21.830005",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "Agency Approval",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

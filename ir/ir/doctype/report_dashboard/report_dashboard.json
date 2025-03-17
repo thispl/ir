@@ -1,0 +1,64 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-12-10 10:54:54.508112",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "reports",
+  "download",
+  "column_break_ctts",
+  "from_date",
+  "to_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "reports",
+   "fieldtype": "Select",
+   "label": "Reports",
+   "options": "\nSalary Register"
+  },
+  {
+   "fieldname": "download",
+   "fieldtype": "Button",
+   "label": "Download"
+  },
+  {
+   "fieldname": "column_break_ctts",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date"
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-12-10 11:02:00.539594",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "Report Dashboard",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

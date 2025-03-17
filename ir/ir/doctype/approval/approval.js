@@ -12,6 +12,7 @@ frappe.ui.form.on('Approval', {
 			frm.clear_table("mp_approval")
 			frm.clear_table("ot_approval")
 			frm.clear_table("sr_approval")
+			frm.clear_table("compoff_approval")
 			$('*[data-fieldname="od_approval"]').find('.grid-remove-rows').hide();
 			$('*[data-fieldname="od_approval"]').find('.grid-remove-all-rows').hide();
 			$('*[data-fieldname="od_approval"]').find('.grid-add-row').remove()
@@ -35,6 +36,211 @@ frappe.ui.form.on('Approval', {
 			$('*[data-fieldname="sr_approval"]').find('.grid-remove-rows').hide();
 			$('*[data-fieldname="sr_approval"]').find('.grid-remove-all-rows').hide();
 			$('*[data-fieldname="sr_approval"]').find('.grid-add-row').remove()
+
+			$('*[data-fieldname="compoff_approval"]').find('.grid-remove-rows').hide();
+			$('*[data-fieldname="compoff_approval"]').find('.grid-remove-all-rows').hide();
+			$('*[data-fieldname="compoff_approval"]').find('.grid-add-row').remove()
+			// COFF Table-FM
+			if (frappe.user.has_role(['First Manager'])) {
+				frappe.call({
+					"method": "frappe.client.get_list",
+					"args": {
+						"doctype": "Compensatory Off Request",
+						"filters": [
+							['workflow_state', '=', 'FM Pending'],
+						],
+						'field':['*'],
+						limit_page_length: 500
+					},
+					callback(r) {
+						$.each(r.message, function (i, d) {
+							frappe.call({
+								"method": "frappe.client.get",
+								"args": {
+									"doctype": "Compensatory Off Request",
+									"name": d.name
+								},
+								freeze: true,
+								freeze_message: "Loading...",
+								callback(r) {
+									frm.add_child('compoff_approval', {
+										'compensatory_off_request': r.message.name,
+										'employee': r.message.employee,
+										'employee_name': r.message.employee_name,
+										'workflow_state': r.message.workflow_state,
+                                        'department': r.message.department,
+                                        'employee_category':r.message.employee_category,
+                                        'designation':r.message.designation,
+										'from_date': r.message.from_date,
+										'to_date': r.message.to_date,
+										'posting_date': r.message.posting_date,
+                                        'reason':r.message.reason,
+                                        'total_number_of_days':r.message.total_leave_days
+										
+									})
+									frm.refresh_field('compoff_approval')
+								}
+							})
+
+						})
+					}
+				})
+			}
+			// CORR Table_SM
+
+			if (frappe.user.has_role(['Second Manager'])) {
+				frappe.call({
+					"method": "frappe.client.get_list",
+					"args": {
+						"doctype": "Compensatory Off Request",
+						"filters": [
+							['workflow_state', '=', 'SM Pending'],
+						],
+						'field':['*'],
+						limit_page_length: 500
+					},
+					callback(r) {
+						$.each(r.message, function (i, d) {
+							frappe.call({
+								"method": "frappe.client.get",
+								"args": {
+									"doctype": "Compensatory Off Request",
+									"name": d.name
+								},
+								freeze: true,
+								freeze_message: "Loading...",
+								callback(r) {
+									frm.add_child('compoff_approval', {
+										'compensatory_off_request': r.message.name,
+										'employee': r.message.employee,
+										'employee_name': r.message.employee_name,
+										'workflow_state': r.message.workflow_state,
+                                        'department': r.message.department,
+                                        'employee_category':r.message.employee_category,
+                                        'designation':r.message.designation,
+										'from_date': r.message.from_date,
+										'to_date': r.message.to_date,
+										'posting_date': r.message.posting_date,
+                                        'reason':r.message.reason,
+                                        'total_number_of_days':r.message.total_leave_days
+										
+									})
+									frm.refresh_field('compoff_approval')
+								}
+							})
+
+						})
+					}
+				})
+			}
+			// COFF Table-HR 
+			if (frappe.user.has_role(['HR User'])) {
+				frappe.call({
+					"method": "frappe.client.get_list",
+					"args": {
+						"doctype": "Compensatory Off Request",
+						"filters": [
+							['workflow_state', '=', 'HR Pending'],
+						],
+						'field':['*'],
+						limit_page_length: 500
+					},
+					callback(r) {
+						$.each(r.message, function (i, d) {
+							frappe.call({
+								"method": "frappe.client.get",
+								"args": {
+									"doctype": "Compensatory Off Request",
+									"name": d.name
+								},
+								freeze: true,
+								freeze_message: "Loading...",
+								callback(r) {
+									frm.add_child('compoff_approval', {
+										'compensatory_off_request': r.message.name,
+										'employee': r.message.employee,
+										'employee_name': r.message.employee_name,
+										'workflow_state': r.message.workflow_state,
+                                        'department': r.message.department,
+                                        'employee_category':r.message.employee_category,
+                                        'designation':r.message.designation,
+										'from_date': r.message.from_date,
+										'to_date': r.message.to_date,
+										'posting_date': r.message.posting_date,
+                                        'reason':r.message.reason,
+                                        'total_number_of_days':r.message.total_leave_days
+										
+									})
+									frm.refresh_field('compoff_approval')
+								}
+							})
+
+						})
+					}
+				})
+			}
+
+			// COFF Reject
+			frm.fields_dict["compoff_approval"].grid.add_custom_button(__('Reject'),
+				function () {
+					$.each(frm.doc.compoff_approval, function (i, d) {
+						if (d.__checked == 1) {
+							frm.call('submit_coff_doc', {
+								doctype: "Compensatory Off Request",
+								name: d.compensatory_off_request,
+								workflow_state: 'Rejected'
+							}).then(r => {
+								frm.get_field("compoff_approval").grid.grid_rows[d.idx - 1].remove();
+							})
+						}
+						frm.refresh_field('compoff_approval')
+					})
+				}).addClass('btn-danger')
+            // COFF Approval
+			frm.fields_dict["compoff_approval"].grid.add_custom_button(__('Approve'),
+				function () {
+					$.each(frm.doc.compoff_approval, function (i, d) {
+						if (d.__checked == 1) {
+							if (d.workflow_state == 'FM Pending') {
+								frappe.msgprint(__("The Compensatory Off Request {0} has been Move to HR Pending", [d.compensatory_off_request]));
+								frm.call('submit_coff_doc', {
+									doctype: "Compensatory Off Request",
+									name: d.compensatory_off_request,
+									workflow_state: 'FM Pending'
+								}).then(r => {
+									frm.get_field("compoff_approval").grid.grid_rows[d.idx - 1].remove();
+									
+								})
+								frm.refresh_field('compoff_approval')
+							}
+							if (d.workflow_state == 'SM Pending') {
+								frappe.msgprint(__("The Compensatory Off Request {0} has been Move to HR Pending", [d.compensatory_off_request]));
+								frm.call('submit_coff_doc', {
+									doctype: "Compensatory Off Request",
+									name: d.compensatory_off_request,
+									workflow_state: 'SM Pending'
+								}).then(r => {
+									frm.get_field("compoff_approval").grid.grid_rows[d.idx - 1].remove();
+									
+								})
+								frm.refresh_field('compoff_approval')
+							}
+							if (d.workflow_state == 'HR Pending') {
+								frappe.msgprint(__("The Compensatory Off Request {0} has been Approved", [d.compensatory_off_request]));
+								frm.call('submit_coff_doc', {
+									doctype: "Compensatory Off Request",
+									name: d.compensatory_off_request,
+									workflow_state: 'HR Pending'
+								}).then(r => {
+									frm.refresh_field('compoff_approval')
+									frm.get_field("compoff_approval").grid.grid_rows[d.idx - 1].remove();
+									
+								})
+								
+							}
+						}
+					})
+				}).addClass('btn-primary').css({ "margin-left": "10px", "margin-right": "10px" })
 			// LA Table-FM
 			if (frappe.user.has_role(['First Manager'])) {
 				frappe.call({
@@ -71,7 +277,7 @@ frappe.ui.form.on('Approval', {
 										'half_day': r.message.half_day,
 										'half_day_date': r.message.half_day_date,
 										'total_leave_days': r.message.total_leave_days,
-										'session': r.message.session,
+										'session': r.message.custom_session,
 										'description': r.message.to_time,
 										'leave_approver': r.message.leave_approver,
 										'leave_approver_name': r.message.leave_approver_name,
@@ -124,7 +330,7 @@ frappe.ui.form.on('Approval', {
 										'half_day': r.message.half_day,
 										'half_day_date': r.message.half_day_date,
 										'total_leave_days': r.message.total_leave_days,
-										'session': r.message.session,
+										'session': r.message.custom_session,
 										'description': r.message.to_time,
 										'leave_approver': r.message.leave_approver,
 										'leave_approver_name': r.message.leave_approver_name,
@@ -175,7 +381,7 @@ frappe.ui.form.on('Approval', {
 										'half_day': r.message.half_day,
 										'half_day_date': r.message.half_day_date,
 										'total_leave_days': r.message.total_leave_days,
-										'session': r.message.session,
+										'session': r.message.custom_session,
 										'description': r.message.to_time,
 										'leave_approver': r.message.leave_approver,
 										'leave_approver_name': r.message.leave_approver_name,
@@ -746,6 +952,7 @@ frappe.ui.form.on('Approval', {
 						"doctype": "Over Time Request",
 						"filters": [
 							['workflow_state', '=', 'FM Pending'],
+							['agency_employee','=',0]
 							// ['first_manager', '=', frappe.session.user]
 						],
 						'field':['*'],
@@ -764,8 +971,7 @@ frappe.ui.form.on('Approval', {
 								freeze_message: "Loading...",
 								callback(r) {
 									// frm.clear_table("ot_approval")
-									if (r.message.ot_hour != '0:00:00' ){
-										// console.log(r.message.ot_hours)
+									if (r.message.ot_hour != '0:00:00' && r.message.agency_employee == 0){
 										frm.add_child('ot_approval', {
 											'overtime_request': r.message.name,
 											'employee': r.message.employee,
@@ -802,6 +1008,7 @@ frappe.ui.form.on('Approval', {
 						"doctype": "Over Time Request",
 						"filters": [
 							['workflow_state', '=', 'SM Pending'],
+							['agency_employee','=',0]
 							
 						],
 						'field':['*'],
@@ -818,8 +1025,7 @@ frappe.ui.form.on('Approval', {
 								freeze: true,
 								freeze_message: "Loading...",
 								callback(r) {
-									if (r.message.ot_hour != '0:00:00' ){
-										// console.log(r.message.ot_hours)
+									if (r.message.ot_hour != '0:00:00' && r.message.agency_employee == 0){
 										frm.add_child('ot_approval', {
 											'overtime_request': r.message.name,
 											'employee': r.message.employee,
@@ -856,6 +1062,7 @@ frappe.ui.form.on('Approval', {
 						"doctype": "Over Time Request",
 						"filters": [
 							['workflow_state', '=', 'Pending for Plant Manager'],
+							['agency_employee','=',0]
 							// ['first_manager', '=', frappe.session.user]
 						],
 						'field':['*'],
@@ -872,8 +1079,7 @@ frappe.ui.form.on('Approval', {
 								freeze: true,
 								freeze_message: "Loading...",
 								callback(r) {
-									if (r.message.ot_hour != '0:00:00' ){
-										// console.log(r.message.ot_hours)
+									if (r.message.ot_hour != '0:00:00' && r.message.agency_employee == 0){
 										frm.add_child('ot_approval', {
 											'overtime_request': r.message.name,
 											'employee': r.message.employee,
@@ -910,6 +1116,7 @@ frappe.ui.form.on('Approval', {
 						"doctype": "Over Time Request",
 						"filters": [
 							['workflow_state', '=', 'HR Pending'],
+							['agency_employee','=',0]
 							// ['first_manager', '=', frappe.session.user]
 						],
 						'field':['*'],
@@ -926,8 +1133,7 @@ frappe.ui.form.on('Approval', {
 								freeze: true,
 								freeze_message: "Loading...",
 								callback(r) {
-									if (r.message.ot_hour != '0:00:00' ){
-										// console.log(r.message.ot_hours)
+									if (r.message.ot_hour != '0:00:00' && r.message.agency_employee == 0){
 										frm.add_child('ot_approval', {
 											'overtime_request': r.message.name,
 											'employee': r.message.employee,
@@ -983,26 +1189,6 @@ frappe.ui.form.on('Approval', {
 									frm.get_field("ot_approval").grid.grid_rows[d.idx - 1].remove();
 								})
 							}
-							if (d.workflow_state == 'SM Pending') {
-								frappe.msgprint(__("The Over Time Request {0} has been Move to Pending for Plant Manager", [d.overtime_request]));
-								frm.call('submit_doc', {
-									doctype: "Over Time Request",
-									name: d.overtime_request,
-									workflow_state: 'Pending for Plant Manager'
-								}).then(r => {
-									frm.get_field("ot_approval").grid.grid_rows[d.idx - 1].remove();
-								})
-							}
-							if (d.workflow_state == 'Pending for Plant Manager') {
-								frappe.msgprint(__("The Over Time Request {0} has been Move to HR Pending", [d.overtime_request]));
-								frm.call('submit_doc', {
-									doctype: "Over Time Request",
-									name: d.overtime_request,
-									workflow_state: 'HR Pending'
-								}).then(r => {
-									frm.get_field("ot_approval").grid.grid_rows[d.idx - 1].remove();
-								})
-							}
 							if (d.workflow_state == 'HR Pending') {
 								frappe.msgprint(__("The Over Time Request {0} has been Approved", [d.overtime_request]));
 								frm.call('submit_doc', {
@@ -1013,6 +1199,7 @@ frappe.ui.form.on('Approval', {
 									frm.get_field("ot_approval").grid.grid_rows[d.idx - 1].remove();
 								})
 							}
+							
 						}
 					})
 				}).addClass('btn-primary').css({ "margin-left": "10px", "margin-right": "10px" })
@@ -1185,7 +1372,6 @@ frappe.ui.form.on('Approval', {
 		if (frappe.user.has_role(['First Manager'])) {
 			frappe.db.get_value('Employee',{'user_id':frappe.session.user},['name'])
 			.then(r => {
-			console.log(r.message.name)
 			frappe.call({
 				"method": "frappe.client.get_list",
 				"args": {
@@ -1221,7 +1407,7 @@ frappe.ui.form.on('Approval', {
 									'half_day': r.message.half_day,
 									'half_day_date': r.message.half_day_date,
 									'total_leave_days': r.message.total_leave_days,
-									'session': r.message.session,
+									'session': r.message.custom_session,
 									'description': r.message.to_time,
 									'leave_approver': r.message.leave_approver,
 									'leave_approver_name': r.message.leave_approver_name,
@@ -1278,7 +1464,7 @@ frappe.ui.form.on('Approval', {
 									'half_day': r.message.half_day,
 									'half_day_date': r.message.half_day_date,
 									'total_leave_days': r.message.total_leave_days,
-									'session': r.message.session,
+									'session': r.message.custom_session,
 									'description': r.message.to_time,
 									'leave_approver': r.message.leave_approver,
 									'leave_approver_name': r.message.leave_approver_name,
@@ -1333,7 +1519,7 @@ frappe.ui.form.on('Approval', {
 									'half_day': r.message.half_day,
 									'half_day_date': r.message.half_day_date,
 									'total_leave_days': r.message.total_leave_days,
-									'session': r.message.session,
+									'session': r.message.custom_session,
 									'description': r.message.to_time,
 									'leave_approver': r.message.leave_approver,
 									'leave_approver_name': r.message.leave_approver_name,
@@ -1933,7 +2119,8 @@ frappe.ui.form.on('Approval', {
 					"doctype": "Over Time Request",
 					"filters": [
 						['workflow_state', '=', 'FM Pending'],
-						['employee','!=',r.message.name]
+						['employee','!=',r.message.name],
+						['agency_employee','=',0]
 					],
 					'field':['*'],
 					limit_page_length: 2000
@@ -1951,8 +2138,7 @@ frappe.ui.form.on('Approval', {
 							freeze_message: "Loading...",
 							callback(r) {
 								// frm.clear_table("ot_approval")
-								if (r.message.ot_hour != '0:00:00' ){
-									// console.log(r.message.ot_hours)
+								if (r.message.ot_hour != '0:00:00' && r.message.agency_employee == 0){
 									frm.add_child('ot_approval', {
 										'overtime_request': r.message.name,
 										'employee': r.message.employee,
@@ -1992,7 +2178,8 @@ frappe.ui.form.on('Approval', {
 					"doctype": "Over Time Request",
 					"filters": [
 						['workflow_state', '=', 'SM Pending'],
-						['employee','!=',r.message.name]
+						['employee','!=',r.message.name],
+						['agency_employee','=',0]
 						
 					],
 					'field':['*'],
@@ -2009,8 +2196,7 @@ frappe.ui.form.on('Approval', {
 							freeze: true,
 							freeze_message: "Loading...",
 							callback(r) {
-								if (r.message.ot_hour != '0:00:00' ){
-									// console.log(r.message.ot_hours)
+								if (r.message.ot_hour != '0:00:00' && r.message.agency_employee == 0){
 									frm.add_child('ot_approval', {
 										'overtime_request': r.message.name,
 										'employee': r.message.employee,
@@ -2050,7 +2236,8 @@ frappe.ui.form.on('Approval', {
 					"doctype": "Over Time Request",
 					"filters": [
 						['workflow_state', '=', 'Pending for Plant Manager'],
-						['employee','!=',r.message.name]
+						['employee','!=',r.message.name],
+						['agency_employee','=',0]
 					],
 					'field':['*'],
 					limit_page_length: 2000
@@ -2066,8 +2253,7 @@ frappe.ui.form.on('Approval', {
 							freeze: true,
 							freeze_message: "Loading...",
 							callback(r) {
-								if (r.message.ot_hour != '0:00:00' ){
-									// console.log(r.message.ot_hours)
+								if (r.message.ot_hour != '0:00:00' && r.message.agency_employee == 0){
 									frm.add_child('ot_approval', {
 										'overtime_request': r.message.name,
 										'employee': r.message.employee,
@@ -2107,7 +2293,8 @@ frappe.ui.form.on('Approval', {
 					"doctype": "Over Time Request",
 					"filters": [
 						['workflow_state', '=', 'HR Pending'],
-						['employee','!=',r.message.name]
+						['employee','!=',r.message.name],
+						['agency_employee','=',0]
 					],
 					'field':['*'],
 					limit_page_length: 2000
@@ -2123,8 +2310,7 @@ frappe.ui.form.on('Approval', {
 							freeze: true,
 							freeze_message: "Loading...",
 							callback(r) {
-								if (r.message.ot_hour != '0:00:00' ){
-									// console.log(r.message.ot_hours)
+								if (r.message.ot_hour != '0:00:00' && r.message.agency_employee == 0){
 									frm.add_child('ot_approval', {
 										'overtime_request': r.message.name,
 										'employee': r.message.employee,
@@ -2172,6 +2358,7 @@ frappe.ui.form.on('Approval', {
 				$.each(frm.doc.ot_approval, function (i, d) {
 					if (d.__checked == 1) {
 						if (d.workflow_state == 'FM Pending') {
+							
 							frappe.msgprint(__("The Over Time Request {0} has been Move to HR Pending", [d.overtime_request]));
 							frm.call('submit_doc', {
 								doctype: "Over Time Request",
@@ -2192,6 +2379,7 @@ frappe.ui.form.on('Approval', {
 							})
 						}
 						if (d.workflow_state == 'Pending for Plant Manager') {
+							
 							frappe.msgprint(__("The Over Time Request {0} has been Move to HR Pending", [d.overtime_request]));
 							frm.call('submit_doc', {
 								doctype: "Over Time Request",
@@ -2327,7 +2515,7 @@ frappe.ui.form.on('Approval', {
 				$.each(frm.doc.sr_approval, function (i, d) {
 					if (d.__checked == 1) {
 						if (d.workflow_state == 'FM Pending') {
-							frappe.msgprint(__("The Shift Request{0} has been Move to HR Pending", [d.shift_request]));
+							frappe.msgprint(__("The Shift Request {0} has been Move to HR Pending", [d.shift_request]));
 							frm.call('submit_leave_doc', {
 								doctype: "Shift Request",
 								name: d.shift_request,

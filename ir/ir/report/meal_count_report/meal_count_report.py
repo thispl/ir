@@ -100,7 +100,6 @@ def get_data(filters):
                 #     if s.name == j.item:
                 #         count2 = j.count
                 total=count1+count2
-                frappe.errprint(total)
                 status.append(total)
             
             row.extend(status)

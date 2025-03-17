@@ -11,193 +11,112 @@ from frappe import _
 from frappe.model.document import Document
 import datetime
 from frappe.utils import (
-	add_days,
-	cstr,
-	flt,
-	format_datetime,
-	formatdate,
-	get_datetime,
-	get_first_day,
-	get_last_day,
-	get_link_to_form,
-	get_number_format_info,
-	getdate,
-	nowdate,
+    add_days,
+    cstr,
+    flt,
+    format_datetime,
+    formatdate,
+    get_datetime,
+    get_first_day,
+    get_last_day,
+    get_link_to_form,
+    get_number_format_info,
+    getdate,
+    nowdate,
 )
 
-		
+#Check the	date is future date of the present date	
 @frappe.whitelist()
 def shift_request_check(employee, from_date):
-	today = nowdate()
-	# f_date = datetime.strptime(from_date, "%Y-%m-%d").date()
-	diff = date_diff(today, from_date)
-	frappe.errprint(diff)
-	if diff > -1:
-		frappe.msgprint("Shift Request needs to be taken before the from date")
-		return "False"
-	else:
-		return "True"
+    today = nowdate()
+    # f_date = datetime.strptime(from_date, "%Y-%m-%d").date()
+    diff = date_diff(today, from_date)
+    if diff > -1:
+        frappe.msgprint("Shift Request needs to be taken before the from date")
+        return "False"
+    else:
+        return "True"
 
 
+#if Permission there in attendance , shift has been changed as 3 to 2 
 @frappe.whitelist()
 def update_shift(doc, method):
-	if doc.custom_attendance_permission:
-		frappe.errprint("test1")
-		if doc.shift=='3':
-			frappe.errprint("test2")
-			if frappe.db.exists("Shift Assignment",{'employee':doc.employee,'start_date':doc.attendance_date,'docstatus':['!=',2]}):
-				act_shift=frappe.db.get_value("Shift Assignment",{'employee':doc.employee,'start_date':doc.attendance_date,'docstatus':['!=',2]},['shift_type'])
-				if act_shift=='2' or act_shift=='3':
-					frappe.errprint("test")
-					frappe.db.set_value("Attendance",doc.name,'shift',act_shift)
-				
+    if doc.custom_attendance_permission:
+        if doc.shift=='3':
+            if frappe.db.exists("Shift Assignment",{'employee':doc.employee,'start_date':doc.attendance_date,'docstatus':['!=',2]}):
+                act_shift=frappe.db.get_value("Shift Assignment",{'employee':doc.employee,'start_date':doc.attendance_date,'docstatus':['!=',2]},['shift_type'])
+                if act_shift=='2' or act_shift=='3':
+                    frappe.db.set_value("Attendance",doc.name,'shift',act_shift)
+                
 
+#Get the total value of Salary Slip
 @frappe.whitelist()
 def get_mandays_amount(agency,designation):
-	man_days_amount = frappe.db.sql("""select sum(rounded_total) from `tabSalary Slip` where docstatus != 2  and custom_agency='%s' and designation = '%s' """%(custom_agency,designation),as_dict = 1)[0]
-	return[man_days_amount['sum(rounded_total)']]
+    man_days_amount = frappe.db.sql("""select sum(rounded_total) from `tabSalary Slip` where docstatus != 2  and custom_agency='%s' and designation = '%s' """%(custom_agency,designation),as_dict = 1)[0]
+    return[man_days_amount['sum(rounded_total)']]
 
 
+#Update the Shift assignment is on submission of Shift Request
 @frappe.whitelist()
 def shift_change_req(doc, method):
-	frappe.errprint("HII")
-	assignment = frappe.db.sql("""
-		SELECT name FROM `tabShift Assignment`
-		WHERE employee = %s AND start_date = %s
-	""", (doc.employee, doc.from_date), as_dict=True)
-	if assignment:
-		for record in assignment:
-			frappe.db.sql("""UPDATE `tabShift Assignment` SET docstatus = 0 WHERE name = %s""", (record['name'],))
-			frappe.db.sql("""DELETE FROM `tabShift Assignment` WHERE name = %s""", (record['name'],))
-	return "Ok"
+    assignment = frappe.db.sql("""
+        SELECT name FROM `tabShift Assignment`
+        WHERE employee = %s AND start_date = %s
+    """, (doc.employee, doc.from_date), as_dict=True)
+    if assignment:
+        for record in assignment:
+            frappe.db.sql("""UPDATE `tabShift Assignment` SET docstatus = 0 WHERE name = %s""", (record['name'],))
+            frappe.db.sql("""DELETE FROM `tabShift Assignment` WHERE name = %s""", (record['name'],))
+    return "Ok"
 
 
 from frappe.utils import  formatdate,get_last_day, get_first_day, add_days
+#Set default to date is based on given from date(Report filters)
 @frappe.whitelist()
 def get_to_date(from_date):
-	return get_last_day(from_date)
+    return get_last_day(from_date)
 
 # @frappe.whitelist()
 # def validate_od_date(doc,method):
-# 	frappe.errprint(doc.custom_employe)
-# 	frappe.errprint(doc.from_date)
 # 	mesg=frappe.db.exists("On Duty Application",{"docstatus":("!=",'2'),'from_date':doc.from_date,'custom_employe':doc.custom_employe})
-# 	frappe.errprint(mesg)
 # 	if mesg:
 # 		frappe.throw("Not valid")
 
-# from ir.mark_attendance import mark_wh
 
-# @frappe.whitelist()
-# def update_query():
-#     count=0
-#     value = frappe.get_all("Miss Punch Application",{"workflow_state":"Approved","attendance_date":("between",("2024-07-01","2024-07-31"))},["*"])
-#     for i in value:
-#         att=frappe.db.get_value("Attendance",{"docstatus":("!=",2),"attendance_date":i.attendance_date,"employee":i.employee},["name"])
-#         frappe.db.set_value("Attendance",att,"custom_miss_punch_application",i.name)
-#         frappe.db.set_value("Attendance",att,"shift",i.shift)
-#         frappe.db.set_value("Attendance",att,"in_time",i.in_time)
-#         frappe.db.set_value("Attendance",att,"out_time",i.out_time)
-#         mark_wh(i.attendance_date,i.attendance_date)
-
-# @frappe.whitelist()
-# def validate_miss_punch(doc,method):
-# 	if not doc.in_time and not doc.out_time:
-# 		frappe.throw("There is no checkin or checkout present for this date")
-# 	if doc.in_time and doc.out_time:
-# 		frappe.throw("Already Available checkins are against this date")
-
-@frappe.whitelist()
-def update_hours(doc,method):
-	if doc.status == "On Leave" or doc.status=="Absent":
-		frappe.db.sql("""
-			UPDATE `tabAttendance`
-				SET custom_early_out_time = "00:00:00" , custom_total_working_hours = "00:00:00" , custom_ot_hours = "00:00:00" 
-				WHERE name = %s
-			""",(doc.name))
-	if doc.late_entry==0:
-		frappe.db.sql("""update `tabAttendance` set custom_late_entry_time = "00:00:00" """,as_dict = True)
-	
-	frappe.db.sql("""
-		UPDATE `tabAttendance`
-		SET custom_ot_hours = "00:00:00"
-		WHERE (status = 'Half Day' AND late_entry = 0)
-		   OR (late_entry = 1 AND custom_late_entry_time < '03:00:00')
-	""")
-	# if doc.late_entry ==1 and doc.status == "Half Day":
-	#     if doc.custom_late_entry_time < timedelta(hours=3):
-	#         frappe.db.sql("""update `tabAttendance` set custom_ot_hours = "00:00:00" """,as_dict = True)
-	
-# @frappe.whitelist()
-# def update_hours_alternate(doc,method):
-#     if doc.status == "On Leave" or doc.status=="Absent":
-#         frappe.db.sql("""
-#             UPDATE `tabAttendance`
-#                 SET custom_early_out_time = "00:00:00" , custom_total_working_hours = "00:00:00" , custom_ot_hours = "00:00:00" 
-#                 WHERE name = ''
-#             """,(doc.name))
-#     if doc.late_entry==0:
-#         frappe.db.sql("""update `tabAttendance` set custom_late_entry_time = "00:00:00" """,as_dict = True)
-
-import frappe
-
-# @frappe.whitelist()
-# def update_hours_alternate():
-#     value = frappe.get_all("Attendance",{"docstatus":("!=",2)},["*"])
-#     for i in value:
-#         if i.status == "On Leave" or i.status == "Absent":
-#             frappe.db.sql("""
-#                 UPDATE `tabAttendance`
-#                 SET custom_early_out_time = "00:00:00",
-#                     custom_total_working_hours = "00:00:00",
-#                     custom_ot_hours = "00:00:00"
-#                 WHERE name = %s
-#             """, (i.name))
-#             frappe.db.commit()
-
-@frappe.whitelist()
-def update_od_ot():
-	frappe.db.sql("""
-		UPDATE `tabOver Time Request`
-		SET ot_date = "2024-08-21"
-		WHERE name = 'OT Req-609732'
-	""")
-
-
+#Create Comp off document based on below conditions - On submission of Attendance
 @frappe.whitelist()
 def compoff_for_ot(doc,method):
-	frappe.errprint("Method")
-	ot_applicable = frappe.db.get_value("Employee", {"employee": doc.employee}, ['custom_ot_applicable'])
-	holiday = check_holiday(doc.attendance_date, doc.employee)    
-	if holiday:
-		frappe.errprint("Holiday check passed")
-		if doc.custom_employee_category == 'White Collar' and ot_applicable == 0:
-			frappe.errprint("Employee category and OT applicable condition met")
-			if not frappe.db.exists("Compensatory Off Request", {"employee": doc.employee, "from_date": doc.attendance_date, "docstatus": ['!=', 2]}):
-				if doc.working_hours >= 4 and doc.working_hours < 8:
-					frappe.errprint("Comp Off Request not present, creating new one")
-					new_allocation = frappe.new_doc("Compensatory Off Request")
-					new_allocation.employee = doc.employee
-					new_allocation.from_date = doc.attendance_date
-					new_allocation.to_date = doc.attendance_date
-					new_allocation.half_day = 1
-					new_allocation.half_day_date = doc.attendance_date
-					new_allocation.reason = "Automatically created"  
-					new_allocation.insert(ignore_permissions=True)
-					frappe.errprint("Comp Off Request created successfully")
-				elif doc.working_hours > 8:
-					frappe.errprint("Comp Off Request not present, creating new one")
-					new_allocation = frappe.new_doc("Compensatory Off Request")
-					new_allocation.employee = doc.employee
-					new_allocation.from_date = doc.attendance_date
-					new_allocation.to_date = doc.attendance_date
-					new_allocation.reason = "Automatically created"  
-					new_allocation.insert(ignore_permissions=True)
-					frappe.errprint("Comp Off Request created successfully")
-				else:
-					frappe.errprint("Not eligible")
+    ot_applicable = frappe.db.get_value("Employee", {"employee": doc.employee}, ['custom_ot_applicable'])
+    holiday = check_holiday(doc.attendance_date, doc.employee)    
+    if holiday:
+        if doc.custom_employee_category == 'White Collar' and ot_applicable == 0:
+            if not frappe.db.exists("Compensatory Off Request", {"employee": doc.employee, "from_date": doc.attendance_date, "docstatus": ['!=', 2]}):
+                if doc.working_hours is not None:
+                    if 4 <= float(doc.working_hours) < 8:
+                        new_allocation = frappe.new_doc("Compensatory Off Request")
+                        new_allocation.employee = doc.employee
+                        new_allocation.from_date = doc.attendance_date
+                        new_allocation.to_date = doc.attendance_date
+                        new_allocation.half_day = 1
+                        new_allocation.half_day_date = doc.attendance_date
+                        new_allocation.reason = "Automatically created"  
+                        new_allocation.insert(ignore_permissions=True)
+                    elif float(doc.working_hours) > 8:
+                        new_allocation = frappe.new_doc("Compensatory Off Request")
+                        new_allocation.employee = doc.employee
+                        new_allocation.from_date = doc.attendance_date
+                        new_allocation.to_date = doc.attendance_date
+                        new_allocation.reason = "Automatically created"  
+                        new_allocation.insert(ignore_permissions=True)
+                    
+
+# Manually update the status
 @frappe.whitelist()
 def attendance_correction():
-	checkin = frappe.db.sql("""update `tabAttendance` set docstatus = 1 where name="HR-ATT-2024-52718" """,as_dict = True)
-	# value=frappe.db.get_value("Attendance",{"name":"HR-ATT-2024-54624"},["docstatus"])
-	# print(value)
+	checkin = frappe.db.sql("""
+    UPDATE `tabAttendance`
+    SET late_entry = 0,custom_late_entry_time=Null
+    WHERE name = 'HR-ATT-2025-15086'
+""", as_dict=True)
+    # value=frappe.db.get_value("Salary Slip",{"name":"Sal Slip/S1476/00008"},["gross_pay"])
+    # print(value * 0.0075)

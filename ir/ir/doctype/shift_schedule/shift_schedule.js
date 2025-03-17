@@ -37,7 +37,6 @@ frappe.ui.form.on('Shift Schedule', {
 		// }
 	},
 	get_template: function (frm) {
-		console.log(frappe.request.url)
 		window.location.href = repl(frappe.request.url +
 			'?cmd=%(cmd)s&from_date=%(from_date)s&to_date=%(to_date)s&department=%(department)s', {
 			cmd: "ir.ir.doctype.shift_schedule.shift_schedule.get_template",
@@ -125,6 +124,7 @@ frappe.ui.form.on('Shift Schedule', {
 		if (frm.doc.upload) {
 			frm.fields_dict.summary.$wrapper.empty()
 			frm.call('show_summary').then(r => {
+				
 				if (r.message) {
 					frm.fields_dict.summary.$wrapper.empty().append("<h2>Summary</h2><table class='table table-bordered'>" + r.message + "</table>")
 				}

@@ -7,7 +7,7 @@ frappe.ui.form.on('Attendance Settings', {
 	},
 	process_checkins(frm){
 		if (frm.doc.employee){
-			console.log("HI")
+		
 			frappe.call({
 				"method": "ir.mark_attendance.get_urc_to_ec",
 				"args":{
@@ -18,7 +18,7 @@ frappe.ui.form.on('Attendance Settings', {
 				freeze: true,
 				freeze_message: 'Processing UnRegistered Employee Checkin to Employee Checkin....',
 				callback(r){
-					console.log(r.message)
+					
 					if(r.message == "ok"){
 						frappe.msgprint("Checkins are created Successfully")
 					}
@@ -26,7 +26,7 @@ frappe.ui.form.on('Attendance Settings', {
 			})
 		}
 		else{
-			console.log("HII")
+			
 			frappe.call({
 				"method": "ir.mark_attendance.enqueue_get_urc_to_ec_without_employee",
 				"args":{
@@ -36,7 +36,6 @@ frappe.ui.form.on('Attendance Settings', {
 				freeze: true,
 				freeze_message: 'Processing UnRegistered Employee Checkin to Employee Checkin....',
 				callback(r){
-					console.log(r.message)
 					if(r.message == "ok"){
 						frappe.msgprint("Checkins are created Successfully")
 					}
@@ -47,9 +46,9 @@ frappe.ui.form.on('Attendance Settings', {
 	process_attendance(frm){
 		
 		if (frm.doc.employee){
-			console.log("HI")
+			
 			frappe.call({
-				"method": "ir.mark_attendance.enqueue_update_att_with_employee",
+				"method": "ir.mark_attendance.update_att_with_employee",
 				"args":{
 					"from_date" : frm.doc.from_date,
 					"to_date": frm.doc.to_date,
@@ -58,7 +57,7 @@ frappe.ui.form.on('Attendance Settings', {
 				freeze: true,
 				freeze_message: 'Processing Attendance....',
 				callback(r){
-					// console.log(r.message)
+				
 					if(r.message == "OK"){
 						frappe.msgprint("Attendance are created Successfully")
 					}
@@ -76,7 +75,7 @@ frappe.ui.form.on('Attendance Settings', {
 				freeze: true,
 				freeze_message: 'Processing Attendance....',
 				callback(r){
-					// console.log(r.message)
+				
 					if(r.message == "OK"){
 						frappe.msgprint("Attendance are created Successfully")
 					}
@@ -95,7 +94,7 @@ frappe.ui.form.on('Attendance Settings', {
 				freeze: true,
 				freeze_message: 'Processing Attendance....',
 				callback(r){
-					// console.log(r.message)
+					
 					if(r.message == "Ok"){
 						frappe.msgprint("Attendance are created Successfully")
 					}
@@ -103,9 +102,9 @@ frappe.ui.form.on('Attendance Settings', {
 			})
 		}
 		else{
-			console.log("HII")
+			
 			frappe.call({
-				"method": "ir.mark_attendance.enqueue_update_att_without_employee",
+				"method": "ir.mark_attendance.update_att_without_employee",
 				"args":{
 					"from_date" : frm.doc.from_date,
 					"to_date": frm.doc.to_date 
@@ -113,7 +112,7 @@ frappe.ui.form.on('Attendance Settings', {
 				freeze: true,
 				freeze_message: 'Processing Attendance....',
 				callback(r){
-					console.log(r.message)
+					
 					if(r.message == "ok"){
 						frappe.msgprint("Attendance are created Successfully")
 					}

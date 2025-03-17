@@ -3,7 +3,7 @@ from frappe import get_doc
 from frappe.utils import getdate
 from datetime import datetime
 from frappe.utils import get_first_day, get_last_day, format_datetime,get_url_to_form
-from frappe.utils.data import date_diff, now_datetime, nowdate, today, add_days
+from frappe.utils.data import date_diff, now_datetime, nowdate, today, add_days,comma_sep
 from frappe.model.naming import parse_naming_series
 import re
 from frappe.utils import get_url_to_form,money_in_words
@@ -15,6 +15,7 @@ from frappe import _
 from time import strptime
 from datetime import datetime,time
 from typing import Dict, Optional, Tuple, Union
+from erpnext.setup.doctype.employee.employee import get_all_employee_emails, get_employee_email
 from frappe.utils import (
     add_days,
     cint,
@@ -28,12 +29,14 @@ from frappe.utils import (
     nowdate,
 )
 
+# Get the designation value from Agency to match with employee agency
 @frappe.whitelist()
 def get_designation(name):
     doc = frappe.get_doc("Agency", name)
-    states = [state.designation for state in doc.designation]
+    states = [state.designation for state in doc.agency_wages]
     return states
 
+# Update all values for employee like basic,special allowance from Agency
 @frappe.whitelist()	
 def update_agency_wages(doc,method):
     ss=frappe.get_doc("Employee",doc.name)
@@ -41,13 +44,11 @@ def update_agency_wages(doc,method):
             basic = frappe.db.get_value("Agency Wages",{'designation':ss.designation,'parent':ss.custom_agency_name},['basic'])
             frappe.db.set_value("Employee",doc.employee_number,"custom_basic",basic)
             ss.custom_basic=basic
-            frappe.errprint(ss.custom_basic)
             # ss.save(ignore_permissions=True)
             # frappe.db.commit()
             dearness_allowance = frappe.db.get_value("Agency Wages",{'designation':ss.designation,'parent':ss.custom_agency_name},['dearness_allowance'])
             frappe.db.set_value("Employee", doc.name, "custom_dearness_allowance", dearness_allowance)
             ss.custom_dearness_allowance=dearness_allowance
-            frappe.errprint(ss.custom_dearness_allowance)
             special_allowance_ = frappe.db.get_value("Agency Wages",{'designation':ss.designation,'parent':ss.custom_agency_name},['special_allowance'])
             frappe.db.set_value("Employee",doc.name,"custom_special_allowance_",special_allowance_)
             earning_provident_fund_13 = frappe.db.get_value("Agency Wages",{'designation':ss.designation,'parent':ss.custom_agency_name},['earning_provident_fund_13'])
@@ -57,60 +58,11 @@ def update_agency_wages(doc,method):
             service_charges_8 = frappe.db.get_value("Agency Wages",{'designation':ss.designation,'parent':ss.custom_agency_name},['service_charge'])
             frappe.db.set_value("Employee",doc.name,"custom_service_chrages",service_charges_8)
             deduction_pf_12 = frappe.db.get_value("Agency Wages",{'designation':ss.designation,'parent':ss.custom_agency_name},['deduction_pf_12'])
-            # frappe.db.set_value("Employee",doc.name,"custom_deduction_pf_12",deduction_pf_12)
-            # deduction_esi_075 = frappe.db.get_value("Agency Wages",{'designation':ss.designation,'parent':ss.custom_agency_name},['deduction_esi_075'])
-            # frappe.db.set_value("Employee",doc.name,"custom_deduction_esi_075",deduction_esi_075)
-            # canteen = frappe.get_value("Agency Wages",{'designation':ss.designation,'parent':ss.custom_agency_name},['canteen'])
-            # frappe.db.set_value("Employee",doc.name,"custom_canteen",canteen)
-            # overtime = frappe.get_value("Agency Wages",{'designation':ss.designation,'parent':ss.custom_agency_name},['overtime'])
-            # frappe.db.set_value("Employee",doc.name,"custom_overtime",overtime)
             frappe.db.commit()
     
 
-# @frappe.whitelist()
-# def get_approver(department, employee):
-#     user = frappe.db.get_value('Employee', employee, 'user_id')
-#     roles = frappe.get_roles(user)
-#     # if 'GM' in roles:
-#     #     return frappe.db.get_value('Department', department, "ceo")
-#     if 'HOD' in roles:
-#         return frappe.db.get_value('Department', department, "hr")
-#     else:
-#         return frappe.db.get_value('Department', department, "hod")
 
-
-
-
-
-
-# @frappe.whitelist()
-# def shift_request_count(employee, from_date, to_date):
-#     f_date = datetime.strptime(from_date, "%Y-%m-%d").date()
-#     t_date = datetime.strptime(to_date, "%Y-%m-%d").date()
-#     diff = date_diff(to_date, from_date) + 1
-#     frappe.errprint(diff)
-#     if diff > 1:
-#         frappe.errprint("HI")
-#         frappe.msgprint(
-#             "Shift Request cannot be applicable for more than 1 days in a month")
-#         return "ok"
-#     else:
-#         month_start = get_first_day(f_date)
-#         month_end = get_last_day(t_date)
-#         request = frappe.db.sql(""" SELECT employee,from_date,to_date FROM `tabShift Request` WHERE employee = '%s' 
-#         AND status='Approved' AND from_date between '%s' AND '%s'""" % (employee, month_start, month_end), as_dict=True)
-#         if request:
-#             total_days = 0
-#             for r in request:
-#                 d = date_diff(r.to_date, r.from_date) + 1
-#                 total_days += d
-#                 # frappe.errprint(total_days)
-#             if total_days >= 1:
-#                 frappe.msgprint(
-#                     "Already Shift Request count existed for this Month")
-#                 return "ok"
-
-
+#Set the employee id based on Category
 
 @frappe.whitelist()
 def set_naming(employee_category):
@@ -167,72 +119,17 @@ def set_naming(employee_category):
 
         return code
 
-
+#Get the sum of payment days to match with agency and designation and set in to agency invoice
 @frappe.whitelist()
 def get_md(agency_name,branch,employee_category,start_date,end_date,designation):
     mdr = frappe.get_value('Agency Wages',{'designation':designation,'parent':agency_name},['total'])
     tar = frappe.get_value('Agency Wages',{'designation':designation,'parent':agency_name},['travel_allowance_rate'])
-    man_days = frappe.db.sql("""select sum(payment_days) from `tabSalary Slip` where docstatus != '2' and agency_name ='%s' and employee_category='%s' and branch = '%s' and start_date = '%s' and end_date = '%s' and designation = '%s' """%(agency_name,employee_category,start_date,end_date,designation),as_dict = 1)[0]
+    man_days = frappe.db.sql("""select designation,sum(payment_days) from `tabSalary Slip` where docstatus != 2 and agency_name ='%s' and employee_category='%s' and branch = '%s' and start_date = '%s' and end_date = '%s' and designation = '%s' """%(agency_name,employee_category,start_date,end_date,designation),as_dict = 1)[0]
     # ot = frappe.db.sql("""select (sum(overtime_hours))  as ot_hrs from `tabSalary Slip` where docstatus != 2  and agency_name ='%s' and employee_category='%s' and branch ='%s' and start_date = '%s' and end_date = '%s' and designation = '%s' """%(agency_name,employee_category,start_date,end_date,designation),as_dict = 1)[0]
     return man_days['sum(payment_days)'] or 0 , mdr or 0 ,tar or 0
 
-@frappe.whitelist()
-def get_mandays_amount(agency_name,employee_category,branch):
-    man_days_amount = frappe.db.sql("""select sum(rounded_total) from `tabSalary Slip` where docstatus != 2  and agency_name='%s' and branch = '%s' and employee_category='%s' """%(agency_name,employee_category),as_dict = 1)[0]
-    return[man_days_amount['sum(rounded_total)']]
 
-@frappe.whitelist()
-def get_total_amount_in_words(total_amount):
-    try:
-        total_amt = float(total_amount)
-        tot = money_in_words(total_amt)
-        return tot
-    except ValueError:
-        frappe.errprint(total_amount)
-        return "Invalid amount"
-# if self.custom_agency and self.designation:
-# 			basic = frappe.db.get_value("Agency Wages",{'designation':self.designation,'parent':self.custom_agency},['basic'])
-# 			frappe.db.set_value("Employee",self.name,"custom_basic",basic)
-# 			self.custom_basic=basic
-            
-# 			dearness_allowance = frappe.db.get_value("Agency Wages",{'designation':self.designation,'parent':self.custom_agency},['dearness_allowance'])
-# 			frappe.db.set_value("Salary Slip",self.name,"custom_dearness_allowance",dearness_allowance)
-# 			self.custom_dearness_allowance=dearness_allowance
-            
-# 			special_allowance_ = frappe.db.get_value("Agency Wages",{'designation':self.designation,'parent':self.custom_agency},['special_allowance'])
-# 			frappe.db.set_value("Salary Slip",self.name,"custom_special_allowance_",special_allowance_)
-# 			self.custom_special_allowance_=special_allowance_
-            
-# 			earning_provident_fund_13 = frappe.db.get_value("Agency Wages",{'designation':self.designation,'parent':self.custom_agency},['earning_provident_fund_13'])
-# 			frappe.db.set_value("Salary Slip",self.name,"custom_earning_provident_fund_13",earning_provident_fund_13)
-# 			self.custom_earning_provident_fund_13=earning_provident_fund_13
-            
-# 			earning_esi_325 = frappe.db.get_value("Agency Wages",{'designation':self.designation,'parent':self.custom_agency},['earning_esi_325'])
-# 			frappe.db.set_value("Salary Slip",self.name,"custom_earning_esi_325",earning_esi_325)
-# 			self.custom_earning_esi_325=earning_esi_325
-
-            # service_charges_8 = frappe.db.get_value("Agency Wages",{'designation':self.designation,'parent':self.custom_agency},['service_charge'])
-            # frappe.db.set_value("Salary Slip",self.name,"custom_service_charges_8",service_charges_8)
-            # self.custom_service_charges_8=service_charges_8
-
-            # deduction_pf_12 = frappe.db.get_value("Agency Wages",{'designation':self.designation,'parent':self.custom_agency},['deduction_pf_12'])
-            # frappe.db.set_value("Salary Slip",self.name,"custom_deduction_pf_12",deduction_pf_12)
-            # self.custom_deduction_pf_12=deduction_pf_12
-
-            # deduction_esi_075 = frappe.db.get_value("Agency Wages",{'designation':self.designation,'parent':self.custom_agency},['deduction_esi_075'])
-            # frappe.db.set_value("Salary Slip",self.name,"custom_deduction_esi_075",deduction_esi_075)
-            # self.custom_deduction_esi_075=deduction_pf_12
-
-            # canteen = frappe.get_value("Agency Wages",{'designation':self.designation,'parent':self.custom_agency},['canteen'])
-            # frappe.db.set_value("Salary Slip",self.name,"custom_canteen",canteen)
-            # self.custom_canteen=canteen
-
-            # overtime = frappe.get_value("Agency Wages",{'designation':self.designation,'parent':self.custom_agency},['overtime'])
-            # frappe.db.set_value("Salary Slip",self.name,"custom_overtime",overtime)
-            # self.custom_overtime=overtime
-
-
-
+#Check the below condition and allocate the earned leave for every employees
 @frappe.whitelist()
 def update_earned_leave():
     start_date = date.today() - timedelta(days=30)
@@ -278,21 +175,9 @@ def update_earned_leave():
                 leave_allocation.save(ignore_permissions=True)			
     frappe.db.commit()
 
-@frappe.whitelist()
-def update_leave_allocation():
-    job = frappe.db.exists('Scheduled Job Type', 'update_earned_leave')
-    if not job:
-        sjt = frappe.new_doc("Scheduled Job Type")
-        sjt.update({
-            "method": 'ir.custom.update_earned_leave',
-            "frequency": 'Cron',
-            "cron_format": '00 09 1 * *'
-        })
-        sjt.save(ignore_permissions=True)
 
 
-
-
+#Check the holiday list for employee
 from datetime import timedelta, time
 @frappe.whitelist()
 def check_holiday(date, emp):
@@ -307,14 +192,134 @@ def check_holiday(date, emp):
     if holiday:
         return holiday
 
+#Create OT Request check with below conditions
 @frappe.whitelist()
-def update_ot_request(doc, method):
-    date = doc.attendance_date
-    hh= check_holiday(date,doc.employee)
-    if not hh:
-        if doc.custom_employee_category =="White Collar":
-            applicable = frappe.db.get_value("Employee",{"name":doc.employee},["custom_ot_applicable"])
-            if applicable ==1:
+def update_ot_request(from_date,to_date):
+    attendance = frappe.get_all("Attendance", {"attendance_date":("between",(from_date,to_date))}, ["*"])
+    for i in attendance:
+        doc = frappe.get_doc("Attendance",i.name)
+        date = doc.attendance_date
+        hh= check_holiday(date,doc.employee)
+        # shift = attendance.get("shift")
+        employement_type = frappe.db.get_value("Employee",{"name":doc.employee},["employment_type"])
+        if not employement_type =="Agency":
+            if not hh:
+                if doc.custom_employee_category =="White Collar":
+                    applicable = frappe.db.get_value("Employee",{"name":doc.employee},["custom_ot_applicable"])
+                    if applicable ==1:
+                        if doc.shift and doc.in_time and doc.out_time:
+                            if doc.status == "Half Day" or doc.status == "Present":
+                                if isinstance(doc.custom_ot_hours, str):
+                                    custom_ot_hours = datetime.strptime(doc.custom_ot_hours, '%H:%M:%S')
+                                    ot_timedelta = timedelta(hours=custom_ot_hours.hour, minutes=custom_ot_hours.minute, seconds=custom_ot_hours.second)
+                                else:
+                                    ot_timedelta = doc.custom_ot_hours
+                                if ot_timedelta and ot_timedelta > timedelta(hours=0, minutes=0, seconds=0):
+                                    
+                                    if not frappe.db.exists("Over Time Request", {'employee': doc.employee, 'ot_date': date}):
+                                        req = frappe.new_doc("Over Time Request")
+                                        req.employee = doc.employee
+                                        req.normal_employee = 1
+                                        req.ot_date = date
+                                        req.ot_hour = doc.custom_ot_hours
+                                        req.planned_hour = time(0, 0, 0)
+                                        req.shift = doc.shift
+                                        req.save(ignore_permissions=True)
+                                        frappe.db.commit()
+                                        print(req.name)
+                                            
+                                    else:
+                                        value =frappe.db.get_value("Over Time Request", {'employee': doc.employee, 'ot_date': date,"docstatus":("!=",2)},["name"])
+                                        document = frappe.get_doc("Over Time Request",value)
+                                        document.ot_hour = doc.custom_ot_hours
+                                        document.save(ignore_permissions=True)
+                                        frappe.db.commit()
+
+                elif not doc.custom_employee_category =="White Collar":
+                    if doc.shift and doc.in_time and doc.out_time:
+                        if doc.status == "Half Day" or doc.status == "Present":
+                            if isinstance(doc.custom_ot_hours, str):
+                                custom_ot_hours = datetime.strptime(doc.custom_ot_hours, '%H:%M:%S')
+                                ot_timedelta = timedelta(hours=custom_ot_hours.hour, minutes=custom_ot_hours.minute, seconds=custom_ot_hours.second)
+                            else:
+                                ot_timedelta = doc.custom_ot_hours
+                            if ot_timedelta and ot_timedelta > timedelta(hours=0, minutes=0, seconds=0):                            
+                                if not frappe.db.exists("Over Time Request", {'employee': doc.employee, 'ot_date': date}):
+                                    req = frappe.new_doc("Over Time Request")
+                                    req.employee = doc.employee
+                                    req.normal_employee = 1
+                                    req.ot_date = date
+                                    req.ot_hour = doc.custom_ot_hours
+                                    req.planned_hour = time(0, 0, 0)
+                                    req.shift = doc.shift
+                                    req.save(ignore_permissions=True)
+                                    frappe.db.commit()
+                                    print(req.name)
+                                
+                                else:
+                                    value =frappe.db.get_value("Over Time Request", {'employee': doc.employee, 'ot_date': date,"docstatus":("!=",2)},["name"])
+                                    document = frappe.get_doc("Over Time Request",value)
+                                    document.ot_hour = doc.custom_ot_hours
+                                    document.save(ignore_permissions=True)
+                                    frappe.db.commit()    
+            else:
+                if doc.custom_employee_category =="White Collar":
+                    applicable = frappe.db.get_value("Employee",{"name":doc.employee},["custom_ot_applicable"])
+                    if applicable ==1:
+                        if doc.shift and doc.in_time and doc.out_time:
+                            if isinstance(doc.custom_ot_hours, str):
+                                custom_ot_hours = datetime.strptime(doc.custom_ot_hours, '%H:%M:%S')
+                                ot_timedelta = timedelta(hours=custom_ot_hours.hour, minutes=custom_ot_hours.minute, seconds=custom_ot_hours.second)
+                            else:
+                                ot_timedelta = doc.custom_ot_hours
+                            if ot_timedelta and ot_timedelta > timedelta(hours=0, minutes=0, seconds=0):
+                                
+                                if not frappe.db.exists("Over Time Request", {'employee': doc.employee, 'ot_date': date}):
+                                    req = frappe.new_doc("Over Time Request")
+                                    req.employee = doc.employee
+                                    req.normal_employee = 1
+                                    req.ot_date = date
+                                    req.ot_hour = doc.custom_ot_hours
+                                    req.planned_hour = time(0, 0, 0)
+                                    req.shift = doc.shift
+                                    req.save(ignore_permissions=True)
+                                    frappe.db.commit()
+                                    print(req.name)
+                                else:
+                                    value =frappe.db.get_value("Over Time Request", {'employee': doc.employee, 'ot_date': date,"docstatus":("!=",2)},["name"])
+                                    document = frappe.get_doc("Over Time Request",value)
+                                    document.ot_hour = doc.custom_ot_hours
+                                    document.save(ignore_permissions=True)
+                                    frappe.db.commit()
+                elif not doc.custom_employee_category =="White Collar":
+                    if doc.shift and doc.in_time and doc.out_time:
+                        if isinstance(doc.custom_ot_hours, str):
+                            custom_ot_hours = datetime.strptime(doc.custom_ot_hours, '%H:%M:%S')
+                            ot_timedelta = timedelta(hours=custom_ot_hours.hour, minutes=custom_ot_hours.minute, seconds=custom_ot_hours.second)
+                        else:
+                            ot_timedelta = doc.custom_ot_hours
+                        if ot_timedelta and ot_timedelta > timedelta(hours=0, minutes=0, seconds=0):
+                            if not frappe.db.exists("Over Time Request", {'employee': doc.employee, 'ot_date': date}):
+                                req = frappe.new_doc("Over Time Request")
+                                req.employee = doc.employee
+                                req.normal_employee = 1
+                                req.ot_date = date
+                                req.ot_hour = doc.custom_ot_hours
+                                req.planned_hour = time(0, 0, 0)
+                                req.shift = doc.shift
+                                req.save(ignore_permissions=True)
+                                frappe.db.commit()
+                                print(req.name)    
+
+                            else:
+                                value =frappe.db.get_value("Over Time Request", {'employee': doc.employee, 'ot_date': date,"docstatus":("!=",2)},["name"])
+                                document = frappe.get_doc("Over Time Request",value)
+                                document.ot_hour = doc.custom_ot_hours
+                                document.save(ignore_permissions=True)
+                                frappe.db.commit()
+                                
+        elif employement_type =="Agency":
+            if hh:
                 if doc.shift and doc.in_time and doc.out_time:
                     if doc.status == "Half Day" or doc.status == "Present":
                         if isinstance(doc.custom_ot_hours, str):
@@ -322,91 +327,26 @@ def update_ot_request(doc, method):
                             ot_timedelta = timedelta(hours=custom_ot_hours.hour, minutes=custom_ot_hours.minute, seconds=custom_ot_hours.second)
                         else:
                             ot_timedelta = doc.custom_ot_hours
-                        if ot_timedelta and ot_timedelta > timedelta(hours=0, minutes=0, seconds=0):
-
-                            ot_plan = frappe.db.sql("""SELECT t1.planned_ot_hrs
-                                                    FROM `tabOT Employee` AS t1 
-                                                    LEFT JOIN `tabOver Time Plan` AS t2 
-                                                    ON t2.name = t1.parent 
-                                                    WHERE t1.employee_id = %s AND t2.ot_date = %s AND t2.docstatus = 1""", (doc.employee, date))
-                            
+                        if ot_timedelta and ot_timedelta > timedelta(hours=0, minutes=0, seconds=0):                            
                             if not frappe.db.exists("Over Time Request", {'employee': doc.employee, 'ot_date': date}):
-                                if ot_plan:
-                                    if ot_plan[0][0] > doc.custom_ot_hours:
-                                        req = frappe.new_doc("Over Time Request")
-                                        req.employee = doc.employee
-                                        req.ot_date = date
-                                        req.ot_hour = doc.custom_ot_hours
-                                        req.planned_hour = ot_plan[0][0]
-                                        req.save(ignore_permissions=True)
-                                        req.submit()
-                                    else:
-                                        req = frappe.new_doc("Over Time Request")
-                                        req.employee = doc.employee
-                                        req.ot_date = date
-                                        req.ot_hour = ot_plan[0][0]
-                                        req.planned_hour = ot_plan[0][0]
-                                        req.save(ignore_permissions=True)
-                                        req.submit()
-                                else:
-                                    frappe.errprint('Worked')
-                                    req = frappe.new_doc("Over Time Request")
-                                    req.employee = doc.employee
-                                    req.ot_date = date
-                                    req.ot_hour = doc.custom_ot_hours
-                                    req.planned_hour = time(0, 0, 0)
-                                    req.save(ignore_permissions=True)
-                                    frappe.db.commit()
-                                    print(req.name)
-
-        elif not doc.custom_employee_category =="White Collar":
-            if doc.shift and doc.in_time and doc.out_time:
-                if doc.status == "Half Day" or doc.status == "Present":
-                    if isinstance(doc.custom_ot_hours, str):
-                        custom_ot_hours = datetime.strptime(doc.custom_ot_hours, '%H:%M:%S')
-                        ot_timedelta = timedelta(hours=custom_ot_hours.hour, minutes=custom_ot_hours.minute, seconds=custom_ot_hours.second)
-                    else:
-                        ot_timedelta = doc.custom_ot_hours
-                    if ot_timedelta and ot_timedelta > timedelta(hours=0, minutes=0, seconds=0):
-                        frappe.errprint('Working')
-                        ot_plan = frappe.db.sql("""SELECT t1.planned_ot_hrs
-                                                FROM `tabOT Employee` AS t1 
-                                                LEFT JOIN `tabOver Time Plan` AS t2 
-                                                ON t2.name = t1.parent 
-                                                WHERE t1.employee_id = %s AND t2.ot_date = %s AND t2.docstatus = 1""", (doc.employee, date))
-                        
-                        if not frappe.db.exists("Over Time Request", {'employee': doc.employee, 'ot_date': date}):
-                            if ot_plan:
-                                if ot_plan[0][0] > doc.custom_ot_hours:
-                                    req = frappe.new_doc("Over Time Request")
-                                    req.employee = doc.employee
-                                    req.ot_date = date
-                                    req.ot_hour = doc.custom_ot_hours
-                                    req.planned_hour = ot_plan[0][0]
-                                    req.save(ignore_permissions=True)
-                                    req.submit()
-                                else:
-                                    req = frappe.new_doc("Over Time Request")
-                                    req.employee = doc.employee
-                                    req.ot_date = date
-                                    req.ot_hour = ot_plan[0][0]
-                                    req.planned_hour = ot_plan[0][0]
-                                    req.save(ignore_permissions=True)
-                                    req.submit()
-                            else:
-                                frappe.errprint('Worked')
                                 req = frappe.new_doc("Over Time Request")
                                 req.employee = doc.employee
+                                req.agency_employee =1
                                 req.ot_date = date
                                 req.ot_hour = doc.custom_ot_hours
                                 req.planned_hour = time(0, 0, 0)
+                                req.shift = doc.shift
                                 req.save(ignore_permissions=True)
                                 frappe.db.commit()
                                 print(req.name)
-    else:
-        if doc.custom_employee_category =="White Collar":
-            applicable = frappe.db.get_value("Employee",{"name":doc.employee},["custom_ot_applicable"])
-            if applicable ==1:
+                            
+                            else:
+                                value =frappe.db.get_value("Over Time Request", {'employee': doc.employee, 'ot_date': date,"docstatus":("!=",2)},["name"])
+                                document = frappe.get_doc("Over Time Request",value)
+                                document.ot_hour = doc.custom_ot_hours
+                                document.save(ignore_permissions=True)
+                                frappe.db.commit()    
+            else:
                 if doc.shift and doc.in_time and doc.out_time:
                     if isinstance(doc.custom_ot_hours, str):
                         custom_ot_hours = datetime.strptime(doc.custom_ot_hours, '%H:%M:%S')
@@ -414,240 +354,40 @@ def update_ot_request(doc, method):
                     else:
                         ot_timedelta = doc.custom_ot_hours
                     if ot_timedelta and ot_timedelta > timedelta(hours=0, minutes=0, seconds=0):
-
-                        ot_plan = frappe.db.sql("""SELECT t1.planned_ot_hrs
-                                                FROM `tabOT Employee` AS t1 
-                                                LEFT JOIN `tabOver Time Plan` AS t2 
-                                                ON t2.name = t1.parent 
-                                                WHERE t1.employee_id = %s AND t2.ot_date = %s AND t2.docstatus = 1""", (doc.employee, date))
-                        
                         if not frappe.db.exists("Over Time Request", {'employee': doc.employee, 'ot_date': date}):
-                            if ot_plan:
-                                if ot_plan[0][0] > doc.custom_ot_hours:
-                                    req = frappe.new_doc("Over Time Request")
-                                    req.employee = doc.employee
-                                    req.ot_date = date
-                                    req.ot_hour = doc.custom_ot_hours
-                                    req.planned_hour = ot_plan[0][0]
-                                    req.save(ignore_permissions=True)
-                                    req.submit()
-                                else:
-                                    req = frappe.new_doc("Over Time Request")
-                                    req.employee = doc.employee
-                                    req.ot_date = date
-                                    req.ot_hour = ot_plan[0][0]
-                                    req.planned_hour = ot_plan[0][0]
-                                    req.save(ignore_permissions=True)
-                                    req.submit()
-                            else:
-                                frappe.errprint('Worked')
-                                req = frappe.new_doc("Over Time Request")
-                                req.employee = doc.employee
-                                req.ot_date = date
-                                req.ot_hour = doc.custom_ot_hours
-                                req.planned_hour = time(0, 0, 0)
-                                req.save(ignore_permissions=True)
-                                frappe.db.commit()
-                                print(req.name)
-
-        elif not doc.custom_employee_category =="White Collar":
-            if doc.shift and doc.in_time and doc.out_time:
-                if isinstance(doc.custom_ot_hours, str):
-                    custom_ot_hours = datetime.strptime(doc.custom_ot_hours, '%H:%M:%S')
-                    ot_timedelta = timedelta(hours=custom_ot_hours.hour, minutes=custom_ot_hours.minute, seconds=custom_ot_hours.second)
-                else:
-                    ot_timedelta = doc.custom_ot_hours
-                if ot_timedelta and ot_timedelta > timedelta(hours=0, minutes=0, seconds=0):
-                    frappe.errprint('Working')
-                    ot_plan = frappe.db.sql("""SELECT t1.planned_ot_hrs
-                                            FROM `tabOT Employee` AS t1 
-                                            LEFT JOIN `tabOver Time Plan` AS t2 
-                                            ON t2.name = t1.parent 
-                                            WHERE t1.employee_id = %s AND t2.ot_date = %s AND t2.docstatus = 1""", (doc.employee, date))
-                    
-                    if not frappe.db.exists("Over Time Request", {'employee': doc.employee, 'ot_date': date}):
-                        if ot_plan:
-                            if ot_plan[0][0] > doc.custom_ot_hours:
-                                req = frappe.new_doc("Over Time Request")
-                                req.employee = doc.employee
-                                req.ot_date = date
-                                req.ot_hour = doc.custom_ot_hours
-                                req.planned_hour = ot_plan[0][0]
-                                req.save(ignore_permissions=True)
-                                req.submit()
-                            else:
-                                req = frappe.new_doc("Over Time Request")
-                                req.employee = doc.employee
-                                req.ot_date = date
-                                req.ot_hour = ot_plan[0][0]
-                                req.planned_hour = ot_plan[0][0]
-                                req.save(ignore_permissions=True)
-                                req.submit()
-                        else:
-                            frappe.errprint('Worked')
                             req = frappe.new_doc("Over Time Request")
                             req.employee = doc.employee
+                            req.agency_employee = 1
                             req.ot_date = date
                             req.ot_hour = doc.custom_ot_hours
                             req.planned_hour = time(0, 0, 0)
+                            req.shift = doc.shift
                             req.save(ignore_permissions=True)
                             frappe.db.commit()
                             print(req.name)    
-@frappe.whitelist()
-def null_out_time():
-    checkin = frappe.db.sql("""update `tabAttendance` set docstatus = 0  where attendance_date between "2024-06-01" and "2024-06-30" """,as_dict = True)
-    print(checkin)
-    # checkin = frappe.db.sql("""update `tabAttendance` set custom_total_working_hours = NULL where attendance_date between "2024-07-16" and "2024-07-23" """,as_dict = True)
-    # print(checkin)
-    # checkin = frappe.db.sql("""update `tabAttendance` set working_hours = 0 where attendance_date between "2024-07-16" and "2024-07-23" """,as_dict = True)
-    # print(checkin)
-    # checkin = frappe.db.sql("""update `tabAttendance` set custom_ot_hours = NULL where attendance_date between "2024-07-16" and "2024-07-23" """,as_dict = True)
-    # print(checkin)
-    # checkin = frappe.db.sql("""update `tabAttendance` set leave_application = ' ' where attendance_date between "2024-07-16" and "2024-07-23" """,as_dict = True)
-    # print(checkin)
-    # checkin = frappe.db.sql("""delete from `tabAttendance` where attendance_date between "2024-07-16" and "2024-07-23" """,as_dict = True)
-    # print(checkin)
 
-@frappe.whitelist()
-def update_att():
-    checkin = frappe.db.sql("""
-        update `tabAttendance`
-        set custom_ot_hours = "05:00:00"
-        where name = "HR-ATT-2024-46806"
-    """, as_dict=True)
-
-
-@frappe.whitelist()
-def update_att1():
-    from_date='2024-04-16'
-    to_date='2024-04-30'
-    attendance = frappe.db.sql("""select * from `tabAttendance` where attendance_date between '%s' and '%s' """%(from_date,to_date),as_dict=True)
-    for i in attendance:
-        # frappe.db.set_value("Attendance",i.name,'in_time','00:00:00')
-        frappe.db.set_value("Attendance",i.name,'out_time','00:00:00')
-        # frappe.db.set_value("Attendance",i.name,'custom_late','00:00:00')
-        # frappe.db.set_value("Attendance",i.name,'shift','')
-
-       
+                        else:
+                            value =frappe.db.get_value("Over Time Request", {'employee': doc.employee, 'ot_date': date,"docstatus":("!=",2)},["name"])
+                            document = frappe.get_doc("Over Time Request",value)
+                            document.ot_hour = doc.custom_ot_hours
+                            document.save(ignore_permissions=True)
+                            frappe.db.commit()
+#Expire the Comp off leave if not used within 60 days      
 @frappe.whitelist()
 def comp_req():
     todays= datetime.strptime(nowdate(), '%Y-%m-%d').date()
-    comp=frappe.db.get_all("Compensatory Off Request",{"docstatus":1},['work_from_date','employee'])
+    comp=frappe.db.get_all("Compensatory Off Request",{"docstatus":1},['from_date','employee'])
     for i in comp:
-        diff = date_diff(todays,i.work_from_date)
+        diff = date_diff(todays,i.from_date)
         if diff ==60:
-            leave_app= frappe.db.sql("select * from `tabLeave Application` where employee = '%s' and from_date between '%s' and '%s' and workflow_state != 'Rejected' and docstatus!=2 "%(i.employee,i.work_from_date,todays),as_dict=True)
+            leave_app= frappe.db.sql("select * from `tabLeave Application` where employee = '%s' and from_date between '%s' and '%s' and workflow_state != 'Rejected' and docstatus!=2 "%(i.employee,i.from_date,todays),as_dict=True)
             if not leave_app:
                 leaves=frappe.db.get_all("Leave Ledger Entry",{"leave_type":'Compensatory Off','employee':i.employee},['creation','name'])
                 for j in leaves:
                     diff = date_diff(todays,j.creation)
-                    # frappe.errprint(diff)
-                    # frappe.errprint(j.name)
                     if diff<=60:
                         frappe.db.set_value("Leave Ledger Entry",j.name,'is_expired',1)   
-
-
-def cron_comp_req():
-    job = frappe.db.exists('Scheduled Job Type', 'comp_req')
-    if not job:
-        var = frappe.new_doc("Scheduled Job Type")
-        var.update({
-            "method": 'ir.custom.comp_req',
-            "frequency": 'Cron',
-            "cron_format": '00 00 * * *'
-        })
-        var.save(ignore_permissions=True)
-       
-
-         
-        
-
-# @frappe.whitelist()
-# def update_query():
-# 	frappe.db.sql("""
-# 		UPDATE `tabAttendance`
-# 			SET docstatus = 0
-# 			WHERE 	name ='HR-ATT-2024-49588'
-# 		""")
- 
-# @frappe.whitelist()
-# def update_query():
-# 	frappe.db.sql("""
-# 		UPDATE `tabOver Time Request`
-# 			SET workflow_state = 'Approved'
-# 			WHERE 	name ='OT Req-610743'
-# 		""") 
-
-# @frappe.whitelist()
-# def update_query():
-#     frappe.db.sql("""
-#         UPDATE `tabLeave Application`
-#         SET workflow_state = %s
-#         WHERE name = %s
-#     """, ('FM Pending', 'HR-ATT-2024-43438'))
-    
-
-# @frappe.whitelist()
-# def update_query():
-#     frappe.db.sql("""
-#         UPDATE `tabAttendance`
-#         SET status = 'Present'
-#         WHERE name IN ('HR-ATT-2024-45012','HR-ATT-2024-37118','HR-ATT-2024-37136','HR-ATT-2024-39035','HR-ATT-2024-39034')
-#     """)
-
-
-
-# @frappe.whitelist()
-# def update_query():
-#     frappe.db.sql("""
-#         UPDATE `tabAttendance`
-#             SET custom_early_out_time = "00:00:00"
-#             WHERE attendance_date BETWEEN '2024-06-01' AND '2024-06-30'
-#         """)		
-
-# @frappe.whitelist()
-# def update_query():
-#     frappe.db.sql("""
-#         DELETE from `tabOver Time Request` where ot_date BETWEEN "2024-06-01" AND "2024-06-30"
-#     """)
-# @frappe.whitelist()
-# def update_employee():
-# 	employees = frappe.get_all("Employee", {"status": "Active",}, ['*'])
-# 	for i in employees:
-# 		if i.custom_basic < 15000:
-# 			basic=i.custom_basic * 0.13
-# 			frappe.db.set_value("Employee",i.name,"custom_pf",basic)
-# 		else:
-# 			frappe.db.set_value("Employee",i.name,"custom_pf",1950)
-            
-
-def ot_calculation():
-    from_date = "2024-07-06"
-    to_date = "2024-07-06"
-    attendance = frappe.db.sql("""select * from `tabAttendance` where attendance_date between '%s' and '%s' """%(from_date,to_date),as_dict=True)
-    for att in attendance:
-        ot_hours = None
-        if att.shift and att.out_time and att.in_time:
-            shift_et = frappe.db.get_value("Shift Type",{'name':att.shift},['end_time'])
-            out_time = datetime.strptime(str(att.out_time),'%Y-%m-%d %H:%M:%S').time()
-            shift_et = datetime.strptime(str(shift_et), '%H:%M:%S').time()
-            if shift_et < out_time:
-                difference = time_diff_in_timedelta_1(shift_et,out_time)
-                diff_time = datetime.strptime(str(difference), '%H:%M:%S').time()
-                if diff_time.hour > 0:
-                    if diff_time.minute >= 50:
-                        ot_hours = time(diff_time.hour+1,0,0)
-                    else:
-                        ot_hours = time(diff_time.hour,0,0)
-                elif diff_time.hour == 0:
-                    if diff_time.minute >= 50:
-                        ot_hours = time(1,0,0)
-                else:
-                    ot_hours = "00:00:00"			
-        else:
-            ot_hours = "00:00:00"
-        frappe.db.set_value("Attendance",att.name,"custom_ot_hours",ot_hours)
-
+   
 def time_diff_in_timedelta_1(time1, time2):
     datetime1 = datetime.combine(datetime.min, time1)
     datetime2 = datetime.combine(datetime.min, time2)
@@ -661,10 +401,10 @@ def time_diff_in_timedelta_1(time1, time2):
 def absent_mail_alert():
     yesterday = add_days(frappe.utils.today(),-1)
     attendance = frappe.db.sql("""
-        SELECT * FROM tabAttendance
-        WHERE attendance_date = %s AND status = 'Absent' AND docstatus < 2
-        ORDER BY employee
-    """, (yesterday,), as_dict=True)
+        SELECT * FROM `tabAttendance` left join `tabEmployee` ON `tabAttendance`.employee = `tabEmployee`.name
+        WHERE `tabAttendance`.attendance_date = %s AND `tabAttendance`.status = "Absent" AND `tabAttendance`.docstatus != "2" AND `tabEmployee`.employment_type != 'Agency'
+        ORDER BY `tabAttendance`.employee
+    """, (yesterday), as_dict=True)
     
     
     
@@ -728,48 +468,21 @@ def absent_mail_alert():
         
         frappe.sendmail(
             # recipients=['siva.m@groupteampro.com','hr@irecambioindia.com'],
-            recipients=['arockia.k@groupteampro.com', 'sivarenisha.m@groupteampro.com', 'anil.p@groupteampro.com','jenisha.p@groupteampro.com'],
+            recipients=[ 'sivarenisha.m@groupteampro.com', 'anil.p@groupteampro.com','jenisha.p@groupteampro.com','sarath.v@groupteampro.com'],
             subject='Absent Report',
             message="""Dear Sir,<br><br>
                 Kindly find the attached Employee Absent Employee List for yesterday({1}):<br>{0}
                 """.format(staff,format_date(yesterday))
         )
 
-
-@frappe.whitelist()
-def cron_job_absent():
-    job = frappe.db.exists('Scheduled Job Type', 'absent_mail_alert')
-    if not job:
-        att = frappe.new_doc("Scheduled Job Type")
-        att.update({
-            "method": 'ir.custom.absent_mail_alert',
-            "frequency": 'Cron',
-            "cron_format": '0 8 * * *'
-        })
-        att.save(ignore_permissions=True)
-
-  
-@frappe.whitelist()
-def cron_job_leave():
-    job = frappe.db.exists('Scheduled Job Type', 'leave_report')
-    if not job:
-        att = frappe.new_doc("Scheduled Job Type")
-        att.update({
-            "method": 'ir.custom.leave_report',
-            "frequency": 'Cron',
-            "cron_format": '0 8 * * *'
-        })
-        att.save(ignore_permissions=True)
-
 @frappe.whitelist()
 def od_report():
     yesterday = add_days(frappe.utils.today(), -1)
     employee = frappe.db.sql("""
-        SELECT `tabMulti Employee`.employee_id, `tabMulti Employee`.employee_name, `tabOn Duty Application`.department, `tabOn Duty Application`.name, `tabOn Duty Application`.from_date_session
-        FROM `tabOn Duty Application`
-        LEFT JOIN `tabMulti Employee` ON `tabMulti Employee`.parent = `tabOn Duty Application`.name
-        WHERE `tabOn Duty Application`.from_date = %s AND `tabOn Duty Application`.docstatus = 1
-        """, (yesterday,), as_dict=True)
+        SELECT * FROM `tabOn Duty Application` left join `tabEmployee` ON `tabOn Duty Application`.employee = `tabEmployee`.name
+        WHERE `tabOn Duty Application`.from_date = %s  AND `tabOn Duty Application`.docstatus = "1" AND `tabEmployee`.employment_type != 'Agency'
+        ORDER BY `tabOn Duty Application`.employee
+    """, (yesterday), as_dict=True)
     
     staff = """
         <div style="text-align: center;">
@@ -798,7 +511,7 @@ def od_report():
                 <td style="padding: 4px; border: 1px solid black;">{4}</td>
                 <td style="padding: 4px; border: 1px solid black;">{5}</td>
             </tr>
-        """.format(idx, i.employee_id, i.employee_name, i.department, i.name or ' ', i.from_date_session or '')
+        """.format(idx, i.employee, i.employee_name, i.department, i.name or ' ', i.from_date_session or '')
         
         idx += 1  # Increment the serial number
     
@@ -821,32 +534,21 @@ def od_report():
                         """.format(staff, format_date(yesterday))
             )
         frappe.sendmail(
-            recipients=['arockia.k@groupteampro.com', 'sivarenisha.m@groupteampro.com', 'anil.p@groupteampro.com', 'jenisha.p@groupteampro.com'],
+            recipients=['sarath.v@groupteampro.com','arockia.k@groupteampro.com', 'sivarenisha.m@groupteampro.com', 'anil.p@groupteampro.com', 'jenisha.p@groupteampro.com'],
             subject='On Duty Application Report',
             message="""Dear Sir,<br><br>
                     Kindly find the attached Employee On Duty Application List for yesterday:<br>{0}
                     """.format(staff)
         )
 
-@frappe.whitelist()
-def cron_job_od():
-    job = frappe.db.exists('Scheduled Job Type', 'od_report')
-    if not job:
-        att = frappe.new_doc("Scheduled Job Type")
-        att.update({
-            "method": 'ir.custom.od_report',
-            "frequency": 'Cron',
-            "cron_format": '0 8 * * *'
-        })
-        att.save(ignore_permissions=True)
 
 @frappe.whitelist()
 def permission_request_report():
     yesterday = add_days(frappe.utils.today(), -1)
     permission = frappe.db.sql("""
-        SELECT * FROM `tabPermission Request`
-        WHERE attendance_date = %s AND docstatus = 1
-        ORDER BY employee
+        SELECT * FROM `tabPermission Request` left join `tabEmployee` ON `tabPermission Request`.employee = `tabEmployee`.name
+        WHERE `tabPermission Request`.attendance_date = %s AND `tabPermission Request`.docstatus = 1 and `tabEmployee`.employment_type != 'Agency'
+        ORDER BY `tabPermission Request`.employee
     """, (yesterday,), as_dict=True)
 
     if not permission:
@@ -900,98 +602,25 @@ def permission_request_report():
                     """.format(staff, format_date(yesterday))
             ) 
         frappe.sendmail(
-            recipients=['arockia.k@groupteampro.com', 'sivarenisha.m@groupteampro.com', 'anil.p@groupteampro.com', 'jenisha.p@groupteampro.com'],
+            recipients=['sarath.v@groupteampro.com','arockia.k@groupteampro.com', 'sivarenisha.m@groupteampro.com', 'anil.p@groupteampro.com', 'jenisha.p@groupteampro.com'],
             subject='Permission Request Report',
             message="""Dear Sir,<br><br>
                 Kindly find the attached employee permission request list for yesterday:<br>{0}
                 """.format(staff)
         )
-@frappe.whitelist()
-def cron_job_permission():
-    job = frappe.db.exists('Scheduled Job Type', 'permission_request_report')
-    if not job:
-        att = frappe.new_doc("Scheduled Job Type")
-        att.update({
-            "method": 'ir.custom.permission_request_report',
-            "frequency": 'Cron',
-            "cron_format": '0 8 * * *'
-        })
-        att.save(ignore_permissions=True)
 
-# @frappe.whitelist()
-# def permission_request_hod():
-#     permission = frappe.db.sql("""
-#         SELECT * FROM `tabPermission Request`
-#         WHERE workflow_state="Pending for HOD"
-#         order by employee
-#     """, as_dict=True)
-#     staff = """
-#         <div style="text-align: center;">
-#                 <h2 style="font-size: 16px;">Permission Request Report</h2>
-#             </div>
-#             <table style="border-collapse: collapse; width: 100%; border: 1px solid black; font-size: 10px;">
-#                 <tr style="border: 1px solid black;">
-#                     <th style="padding: 4px; border: 1px solid black;">Employee</th>
-#                     <th style="padding: 4px; border: 1px solid black;">Employee Name</th>
-#                     <th style="padding: 4px; border: 1px solid black;">Permission Request</th>
-#                     <th style="padding: 4px; border: 1px solid black;">Session</th>
-
-#                 </tr>
-#         """
-#     for per in permission:		
-#             staff += """
-#             <tr style="border: 1px solid black;">
-#                 <td style="padding: 4px; border: 1px solid black;">{0}</td>
-#                 <td style="padding: 4px; border: 1px solid black;">{1}</td>
-#                 <td style="padding: 4px; border: 1px solid black;">{2}</td>
-#                 <td style="padding: 4px; border: 1px solid black;">{3}</td>
-                
-#             </tr>
-#             """.format(per.employee, per.employee_name,
-#                     per.name or ' ',per.session or '')
-#     staff += "</table>"
-#     user = frappe.db.sql("""
-#                     SELECT `tabUser`.name as name
-#                     FROM `tabUser`
-#                     LEFT JOIN `tabHas Role` ON `tabHas Role`.parent = `tabUser`.name where `tabHas Role`.Role="HOD" and `tabUser`.enabled=1
-#                     """,as_dict=True)
-#     if permission:
-#         for i in user:
-#             frappe.sendmail(
-#                 recipients=[i.name],
-#                 subject='Permission Request Report',
-#                 message="""Dear Sir/Mam,<br><br>
-#                         Kindly Find the list of Permission Request waiting for your Approval:<br>{0}
-#                         """.format(staff)
-#             ) 
-#         frappe.sendmail(
-#                 recipients=['arockia.k@groupteampro.com','sivarenisha.m@groupteampro.com','anil.p@groupteampro.com'],
-#                 subject='Permission Request Report',
-#                 message="""Dear Sir,<br><br>
-#                         Kindly Find the list of Permission Request waiting for your Approval:<br>{0}
-#                         """.format(staff)
-#             )
-
-# @frappe.whitelist()
-# def cron_job_perhod():
-#     job = frappe.db.exists('Scheduled Job Type', 'permission_request_hod')
-#     if not job:
-#         att = frappe.new_doc("Scheduled Job Type")
-#         att.update({
-#             "method": 'ir.custom.permission_request_hod',
-#             "frequency": 'Cron',
-#             "cron_format": '0 8 * * *'
-#         })
-#         att.save(ignore_permissions=True)
 
 @frappe.whitelist()
 def permission_request_firstmanager():
     
     permission_requests = frappe.db.sql("""
-        SELECT name, employee, employee_name, session, custom_first_manager
+        SELECT `tabPermission Request`.name, `tabPermission Request`.employee, 
+        `tabPermission Request`.employee_name, `tabPermission Request`.session, `tabPermission Request`.custom_first_manager
         FROM `tabPermission Request`
-        WHERE workflow_state="FM Pending"
-        ORDER BY employee
+        LEFT JOIN `tabEmployee`
+        ON `tabPermission Request`.employee = `tabEmployee`.name
+        WHERE `tabPermission Request`.workflow_state="FM Pending" and `tabEmployee`.employment_type != 'Agency'
+        ORDER BY `tabPermission Request`.employee
     """, as_dict=True)
 
     if not permission_requests:
@@ -1047,33 +676,24 @@ def permission_request_firstmanager():
 
     # Send report to additional recipients
     frappe.sendmail(
-        recipients=['siva.m@groupteampro.com', 'arockia.k@groupteampro.com', 'sivarenisha.m@groupteampro.com', 'anil.p@groupteampro.com', 'jenisha.p@groupteampro.com'],
+        recipients=['sarath.v@groupteampro.com','siva.m@groupteampro.com', 'arockia.k@groupteampro.com', 'sivarenisha.m@groupteampro.com', 'anil.p@groupteampro.com', 'jenisha.p@groupteampro.com'],
         subject='Permission Request Report',
         message="""Dear Sir,<br><br>
         Kindly find the list of Permission Requests waiting for approval:<br>{0}
         """.format(staff)
     )
     
-@frappe.whitelist()
-def cron_job_perfm():
-    job = frappe.db.exists('Scheduled Job Type', 'permission_request_firstmanager')
-    if not job:
-        att = frappe.new_doc("Scheduled Job Type")
-        att.update({
-            "method": 'ir.custom.permission_request_firstmanager',
-            "frequency": 'Cron',
-            "cron_format": '0 8 * * *'
-        })
-        att.save(ignore_permissions=True)
 
 @frappe.whitelist()
 def permission_request_secondmanager():
     
     permission_requests = frappe.db.sql("""
-        SELECT name, employee, employee_name, session, custom_second_manager
-        FROM `tabPermission Request`
-        WHERE workflow_state="SM Pending"
-        ORDER BY employee
+        SELECT `tabPermission Request`.name, `tabPermission Request`.employee, 
+        `tabPermission Request`.employee_name, `tabPermission Request`.session, `tabPermission Request`.custom_second_manager
+        FROM `tabPermission Request` LEFT JOIN `tabEmployee`
+        ON `tabPermission Request`.employee = `tabEmployee`.name
+        WHERE `tabPermission Request`.workflow_state="SM Pending" and `tabEmployee`.employment_type != 'Agency'
+        ORDER BY `tabPermission Request`.employee
     """, as_dict=True)
 
     if not permission_requests:
@@ -1129,33 +749,23 @@ def permission_request_secondmanager():
 
     # Send report to additional recipients
     frappe.sendmail(
-        recipients=['arockia.k@groupteampro.com', 'sivarenisha.m@groupteampro.com', 'anil.p@groupteampro.com', 'siva.m@groupteampro.com', 'jenisha.p@groupteampro.com'],
+        recipients=['sarath.v@groupteampro.com','arockia.k@groupteampro.com', 'sivarenisha.m@groupteampro.com', 'anil.p@groupteampro.com', 'siva.m@groupteampro.com', 'jenisha.p@groupteampro.com'],
         subject='Permission Request Report',
         message="""Dear Sir,<br><br>
         Kindly find the list of Permission Requests waiting for your approval:<br>{0}
         """.format(staff)
     )
-    
-@frappe.whitelist()
-def cron_job_persm():
-    job = frappe.db.exists('Scheduled Job Type', 'permission_request_secondmanager')
-    if not job:
-        att = frappe.new_doc("Scheduled Job Type")
-        att.update({
-            "method": 'ir.custom.permission_request_secondmanager',
-            "frequency": 'Cron',
-            "cron_format": '0 8 * * *'
-        })
-        att.save(ignore_permissions=True)
+
 
 @frappe.whitelist()
 def leave_application_secondmanager_test():
     
     leave_applications = frappe.db.sql("""
-        SELECT name, employee, employee_name, leave_type, custom_second_manager
-        FROM `tabLeave Application`
-        WHERE workflow_state="SM Pending"
-        ORDER BY employee
+        SELECT `tabLeave Application`.name, `tabLeave Application`.employee, `tabLeave Application`.employee_name, `tabLeave Application`.leave_type, `tabLeave Application`.custom_second_manager
+        FROM `tabLeave Application` LEFT JOIN  `tabEmployee`
+        ON `tabLeave Application`.employee = `tabEmployee`.name
+        WHERE `tabLeave Application`.workflow_state="SM Pending" and `tabEmployee`.employment_type != 'Agency'
+        ORDER BY `tabLeave Application`.employee
     """, as_dict=True)
 
     if leave_applications:
@@ -1206,33 +816,23 @@ def leave_application_secondmanager_test():
                 )
 
         frappe.sendmail(
-            recipients=['arockia.k@groupteampro.com', 'sivarenisha.m@groupteampro.com', 'anil.p@groupteampro.com', 'jenisha.p@groupteampro.com'],
+            recipients=['sarath.v@groupteampro.com','arockia.k@groupteampro.com', 'sivarenisha.m@groupteampro.com', 'anil.p@groupteampro.com', 'jenisha.p@groupteampro.com'],
             subject='Leave Application Report',
             message="""Dear Sir,<br><br>
             Kindly find the list of Leave Applications waiting for your approval:<br>{0}
             """.format(staff)
         )
 
-@frappe.whitelist()
-def cron_job_leavesm():
-    job = frappe.db.exists('Scheduled Job Type', 'leave_application_secondmanager_test')
-    if not job:
-        att = frappe.new_doc("Scheduled Job Type")
-        att.update({
-            "method": 'ir.custom.leave_application_secondmanager_test',
-            "frequency": 'Cron',
-            "cron_format": '0 8 * * *'
-        })
-        att.save(ignore_permissions=True) 
 
 @frappe.whitelist()
 def leave_application_firstmanager_test():
     
     leave_applications = frappe.db.sql("""
-        SELECT name, employee, employee_name, leave_type, custom_first_manager
-        FROM `tabLeave Application`
-        WHERE workflow_state="FM Pending"
-        ORDER BY employee
+        SELECT `tabLeave Application`.name, `tabLeave Application`.employee, `tabLeave Application`.employee_name, `tabLeave Application`.leave_type, `tabLeave Application`.custom_first_manager
+        FROM `tabLeave Application` LEFT JOIN `tabEmployee`
+        ON `tabLeave Application`.employee = `tabEmployee`.name
+        WHERE `tabLeave Application`.workflow_state="FM Pending" and `tabEmployee`.employment_type !='Agency'
+        ORDER BY `tabLeave Application`.employee
     """, as_dict=True)
 
     if leave_applications:
@@ -1283,7 +883,7 @@ def leave_application_firstmanager_test():
                 )
 
         frappe.sendmail(
-            recipients=['arockia.k@groupteampro.com', 'sivarenisha.m@groupteampro.com', 'anil.p@groupteampro.com', 'jenisha.p@groupteampro.com'],
+            recipients=['sarath.v@groupteampro.com','arockia.k@groupteampro.com', 'sivarenisha.m@groupteampro.com', 'anil.p@groupteampro.com', 'jenisha.p@groupteampro.com'],
             subject='Leave Application Report',
             message="""Dear Sir,<br><br>
             Kindly find the list of Leave Applications waiting for your approval:<br>{0}
@@ -1291,26 +891,14 @@ def leave_application_firstmanager_test():
         )
 
 
-
-@frappe.whitelist()
-def cron_job_leavehod():
-    job = frappe.db.exists('Scheduled Job Type', 'leave_application_firstmanager_test')
-    if not job:
-        att = frappe.new_doc("Scheduled Job Type")
-        att.update({
-            "method": 'ir.custom.leave_application_firstmanager_test',
-            "frequency": 'Cron',
-            "cron_format": '0 8 * * *'
-        })
-        att.save(ignore_permissions=True)
-
 @frappe.whitelist()
 def leave_application_hod_format():
     
     leave = frappe.db.sql("""
-        SELECT name, employee, employee_name, department, leave_type, from_date, to_date
-        FROM `tabLeave Application`
-        WHERE workflow_state = 'HR Pending'
+        SELECT `tabLeave Application`.name, `tabLeave Application`.employee, `tabLeave Application`.employee_name, `tabLeave Application`.department, `tabLeave Application`.leave_type, `tabLeave Application`.from_date, `tabLeave Application`.to_date
+        FROM `tabLeave Application` LEFT JOIN `tabEmployee`
+        ON `tabLeave Application`.employee = `tabEmployee`.name
+        WHERE workflow_state = 'HR Pending' and `tabEmployee`.employment_type !='Agency'
         ORDER BY name
     """, as_dict=True)
     
@@ -1378,7 +966,7 @@ def leave_application_hod_format():
     
     # Send a copy of the report to specific recipients
     frappe.sendmail(
-        recipients=['arockia.k@groupteampro.com','siva.m@groupteampro.com', 'sivarenisha.m@groupteampro.com', 'jenisha.p@groupteampro.com'],
+        recipients=['sarath.v@groupteampro.com','arockia.k@groupteampro.com','siva.m@groupteampro.com', 'sivarenisha.m@groupteampro.com', 'jenisha.p@groupteampro.com'],
         # recipients=['arockia.k@groupteampro.com', 'jenisha.p@groupteampro.com'],
         subject='Leave Application Report - HR Pending',
         message="""Dear Sir,<br><br>
@@ -1386,28 +974,19 @@ def leave_application_hod_format():
         """.format(staff)
     )
 
-@frappe.whitelist()
-def cron_job_leavehod_test():
-    job = frappe.db.exists('Scheduled Job Type', 'leave_application_hod_format')
-    if not job:
-        att = frappe.new_doc("Scheduled Job Type")
-        att.update({
-            "method": 'ir.custom.leave_application_hod_format',
-            "frequency": 'Cron',
-            "cron_format": '0 8 * * *'
-        })
-        att.save(ignore_permissions=True)
-
-
-
 
 @frappe.whitelist()
 def od_hod():
     employee = frappe.db.sql("""
-                    SELECT `tabMulti Employee`.employee_id, `tabMulti Employee`.employee_name , `tabOn Duty Application`.name,`tabOn Duty Application`.from_date_session,`tabOn Duty Application`.workflow_state
-                    FROM `tabOn Duty Application`
-                    LEFT JOIN `tabMulti Employee` ON `tabMulti Employee`.parent = `tabOn Duty Application`.name where `tabOn Duty Application`.Workflow_state="HR Pending"
-                    """,as_dict=True)
+        SELECT `tabOn Duty Application`.employee, `tabOn Duty Application`.employee_name ,
+        `tabOn Duty Application`.name,`tabOn Duty Application`.from_date_session,
+        `tabOn Duty Application`.workflow_state
+        FROM `tabOn Duty Application` 
+        JOIN `tabEmployee`
+        ON `tabOn Duty Application`.employee = `tabEmployee`.name 
+        where `tabOn Duty Application`.Workflow_state="HR Pending" and `tabEmployee`.employment_type !='Agency'
+        """,as_dict=True)
+    
     staff = """
         <div style="text-align: center;">
                 <h2 style="font-size: 16px;">On Duty Report</h2>
@@ -1432,7 +1011,7 @@ def od_hod():
                 <td style="padding: 4px; border: 1px solid black;">{3}</td>
                 
             </tr>
-            """.format(i.employee_id, i.employee_name,
+            """.format(i.employee, i.employee_name,
                     i.name or ' ',i.from_date_session or '')
     staff += "</table>"
     user = frappe.db.sql("""
@@ -1441,45 +1020,34 @@ def od_hod():
                     LEFT JOIN `tabHas Role` ON `tabHas Role`.parent = `tabUser`.name where `tabHas Role`.Role="HOD" and `tabUser`.enabled=1
                     """,as_dict=True)
     if employee:
-        for i in user:
+        for j in user:
             frappe.sendmail(
-                recipients=[i.name],
+                recipients=[j.name],
                 subject='On Duty Application Report',
                 message="""Dear Sir/Mam,<br><br>
                         Kindly Find the list of On Duty Application waiting for your Approval:<br>{0}
                         """.format(staff)
             )
         frappe.sendmail(
-                recipients=['arockia.k@groupteampro.com','sivarenisha.m@groupteampro.com','anil.p@groupteampro.com','jenisha.p@groupteampro.com'],
+                recipients=['sarath.v@groupteampro.com','arockia.k@groupteampro.com','sivarenisha.m@groupteampro.com','anil.p@groupteampro.com','jenisha.p@groupteampro.com'],
                 subject='On Duty Application Report',
                 message="""Dear Sir,<br><br>
                         Kindly Find the list of On Duty Application waiting for your Approval:<br>{0}
                         """.format(staff)
             )
-@frappe.whitelist()
-def cron_job_odhod():
-    job = frappe.db.exists('Scheduled Job Type', 'od_hod')
-    if not job:
-        att = frappe.new_doc("Scheduled Job Type")
-        att.update({
-            "method": 'ir.custom.od_hod',
-            "frequency": 'Cron',
-            "cron_format": '0 8 * * *'
-        })
-        att.save(ignore_permissions=True)
+
 
 @frappe.whitelist()
 def od_firstmanager_format():
     try:
         # Fetch On Duty applications pending for the first manager's approval
         employees = frappe.db.sql("""
-            SELECT `tabMulti Employee`.employee_id, `tabMulti Employee`.employee_name,
-                   `tabOn Duty Application`.name, `tabOn Duty Application`.from_date_session,
-                   `tabOn Duty Application`.workflow_state, `tabMulti Employee`.custom_first_manager
-            FROM `tabOn Duty Application`
-            LEFT JOIN `tabMulti Employee` ON `tabMulti Employee`.employee_id = `tabOn Duty Application`.employee
-            WHERE `tabOn Duty Application`.workflow_state = "FM Pending"
-        """, as_dict=True)
+        SELECT `tabOn Duty Application`.employee, `tabOn Duty Application`.employee_name , `tabOn Duty Application`.name,`tabOn Duty Application`.from_date_session,`tabOn Duty Application`.workflow_state
+        FROM `tabOn Duty Application` 
+        RIGHT JOIN `tabEmployee`
+        ON `tabOn Duty Application`.employee = `tabEmployee`.name where `tabOn Duty Application`.Workflow_state="FM Pending" and `tabEmployee`.employment_type !='Agency'
+        """,as_dict=True)
+
 
         if employees:
             # Organize On Duty applications by manager
@@ -1513,7 +1081,7 @@ def od_firstmanager_format():
                         <td style="padding: 4px; border: 1px solid black;">{2}</td>
                         <td style="padding: 4px; border: 1px solid black;">{3}</td>
                     </tr>
-                    """.format(report.employee_id, report.employee_name, report.name or ' ', report.from_date_session or '')
+                    """.format(report.employee, report.employee_name, report.name or ' ', report.from_date_session or '')
 
                 staff_report += "</table>"
 
@@ -1526,14 +1094,14 @@ def od_firstmanager_format():
                 )
 
             # Send a general report to predefined email addresses
-            general_report = staff_report  # Use the same report as it's the consolidated view
-            frappe.sendmail(
-                recipients=['arockia.k@groupteampro.com', 'sivarenisha.m@groupteampro.com', 'anil.p@groupteampro.com','jenisha.p@groupteampro.com'],
-                subject='On Duty Application Report',
-                message="""Dear Sir,<br><br>
-                Kindly find the list of On Duty Applications waiting for your approval:<br>{0}
-                """.format(general_report)
-            )
+                general_report = staff_report  # Use the same report as it's the consolidated view
+                frappe.sendmail(
+                    recipients=['jenisha.p@groupteampro.com'],
+                    subject='On Duty Application Report',
+                    message="""Dear Sir,<br><br>
+                    Kindly find the list of On Duty Applications waiting for your approval:<br>{0}
+                    """.format(general_report)
+                )
 
     except Exception as e:
         # Log any exceptions that occur
@@ -1542,10 +1110,11 @@ def od_firstmanager_format():
 @frappe.whitelist()
 def od_secondmanager():
     employee = frappe.db.sql("""
-                    SELECT `tabMulti Employee`.employee_id, `tabMulti Employee`.employee_name , `tabOn Duty Application`.name,`tabOn Duty Application`.from_date_session,`tabOn Duty Application`.workflow_state,`tabMulti Employee`.first_manager,`tabMulti Employee`.second_manager
-                    FROM `tabOn Duty Application`
-                    LEFT JOIN `tabMulti Employee` ON `tabMulti Employee`.parent = `tabOn Duty Application`.name where `tabOn Duty Application`.Workflow_state="Pending for Second Manager"
-                    """,as_dict=True)
+        SELECT `tabOn Duty Application`.employee, `tabOn Duty Application`.employee_name , `tabOn Duty Application`.name,`tabOn Duty Application`.from_date_session,`tabOn Duty Application`.workflow_state
+        FROM `tabOn Duty Application` 
+        RIGHT JOIN `tabEmployee`
+        ON `tabOn Duty Application`.employee = `tabEmployee`.name where `tabOn Duty Application`.Workflow_state="Pending for Second Manager" and `tabEmployee`.employment_type !='Agency'
+        """,as_dict=True)
     staff = """
         <div style="text-align: center;">
                 <h2 style="font-size: 16px;">On Duty Report</h2>
@@ -1584,23 +1153,13 @@ def od_secondmanager():
                         """.format(staff)
             )
         frappe.sendmail(
-                recipients=['arockia.k@groupteampro.com','sivarenisha.m@groupteampro.com','anil.p@groupteampro.com','jenisha.p@groupteampro.com'],
+                recipients=['sarath.v@groupteampro.com','arockia.k@groupteampro.com','sivarenisha.m@groupteampro.com','anil.p@groupteampro.com','jenisha.p@groupteampro.com'],
                 subject='On Duty Application Report',
                 message="""Dear Sir,<br><br>
                         Kindly Find the list of On Duty Application waiting for your Approval:<br>{0}
                         """.format(staff)
             )
-@frappe.whitelist()
-def cron_job_odsm():
-    job = frappe.db.exists('Scheduled Job Type', 'od_secondmanager')
-    if not job:
-        att = frappe.new_doc("Scheduled Job Type")
-        att.update({
-            "method": 'ir.custom.od_secondmanager',
-            "frequency": 'Cron',
-            "cron_format": '0 8 * * *'
-        })
-        att.save(ignore_permissions=True)
+
 
 @frappe.whitelist()
 def ot_hours_mail_alert():
@@ -1628,49 +1187,55 @@ def ot_hours_mail_alert():
 
     # Fetching attendance records for yesterday
     attendance = frappe.get_all(
-        "Attendance",
-        filters={"attendance_date": yesterday, "docstatus": ("!=", 2)},
-        fields=["name", "employee", "employee_name", "department", "custom_ot_hours", "status", "custom_employee_category", "attendance_date", "shift"]
+    "Attendance",
+        filters={
+            "attendance_date": yesterday,
+            "docstatus": ("!=", 2),
+            "custom_ot_hours": ("!=", "00:00:00"),
+            "custom_employee_category": ["is", "set"]
+        },
+        fields=[
+            "name", "employee", "employee_name", "department", 
+            "custom_ot_hours", "status", "custom_employee_category", 
+            "attendance_date", "shift"
+        ]
     )
 
-    for att in attendance:
-        # Check if OT hours are applicable and the employee is not absent
-        if att.custom_ot_hours and att.status != "Absent":
-            ot_applicable = frappe.db.get_value("Employee", {"name": att.employee}, "custom_ot_applicable")
 
-            # Only include "White Collar" employees with OT applicable
-            if att.custom_employee_category == "White Collar" and ot_applicable == 1:
-                no_ot = False
-                staff += """
-                <tr style="border: 1px solid black;">
-                    <td style="padding: 4px; border: 1px solid black; text-align: center;">{0}</td>
-                    <td style="padding: 4px; border: 1px solid black;">{1}</td>
-                    <td style="padding: 4px; border: 1px solid black;">{2}</td>
-                    <td style="padding: 4px; border: 1px solid black;">{3}</td>
-                    <td style="padding: 4px; border: 1px solid black; text-align: center;">{4}</td>
-                    <td style="padding: 4px; border: 1px solid black; text-align: center;">{5}</td>
-                    <td style="padding: 4px; border: 1px solid black; text-align: center;">{6}</td>
-                </tr>
-                """.format(idx, att.employee, att.employee_name, att.department,
-                           format_date(att.attendance_date) or ' ', att.custom_ot_hours or ' ',
-                           att.shift or ' ')
-                idx += 1
-            elif not att.custom_employee_category == "White Collar":
-                no_ot = False
-                staff += """
-                <tr style="border: 1px solid black;">
-                    <td style="padding: 4px; border: 1px solid black; text-align: center;">{0}</td>
-                    <td style="padding: 4px; border: 1px solid black;">{1}</td>
-                    <td style="padding: 4px; border: 1px solid black;">{2}</td>
-                    <td style="padding: 4px; border: 1px solid black;">{3}</td>
-                    <td style="padding: 4px; border: 1px solid black; text-align: center;">{4}</td>
-                    <td style="padding: 4px; border: 1px solid black; text-align: center;">{5}</td>
-                    <td style="padding: 4px; border: 1px solid black; text-align: center;">{6}</td>
-                </tr>
-                """.format(idx, att.employee, att.employee_name, att.department,
-                           format_date(att.attendance_date) or ' ', att.custom_ot_hours or ' ',
-                           att.shift or ' ')
-                idx += 1
+    for att in attendance:
+        ot_applicable = frappe.db.get_value("Employee", {"name": att.employee}, "custom_ot_applicable")       
+        if att.custom_employee_category == "White Collar" and ot_applicable == 1:
+            no_ot = False
+            staff += """
+            <tr style="border: 1px solid black;">
+                <td style="padding: 4px; border: 1px solid black; text-align: center;">{0}</td>
+                <td style="padding: 4px; border: 1px solid black;">{1}</td>
+                <td style="padding: 4px; border: 1px solid black;">{2}</td>
+                <td style="padding: 4px; border: 1px solid black;">{3}</td>
+                <td style="padding: 4px; border: 1px solid black; text-align: center;">{4}</td>
+                <td style="padding: 4px; border: 1px solid black; text-align: center;">{5}</td>
+                <td style="padding: 4px; border: 1px solid black; text-align: center;">{6}</td>
+            </tr>
+            """.format(idx, att.employee, att.employee_name, att.department,
+                        format_date(att.attendance_date) or ' ', att.custom_ot_hours or ' ',
+                        att.shift or ' ')
+            idx += 1
+        elif not att.custom_employee_category == "White Collar":
+            no_ot = False
+            staff += """
+            <tr style="border: 1px solid black;">
+                <td style="padding: 4px; border: 1px solid black; text-align: center;">{0}</td>
+                <td style="padding: 4px; border: 1px solid black;">{1}</td>
+                <td style="padding: 4px; border: 1px solid black;">{2}</td>
+                <td style="padding: 4px; border: 1px solid black;">{3}</td>
+                <td style="padding: 4px; border: 1px solid black; text-align: center;">{4}</td>
+                <td style="padding: 4px; border: 1px solid black; text-align: center;">{5}</td>
+                <td style="padding: 4px; border: 1px solid black; text-align: center;">{6}</td>
+            </tr>
+            """.format(idx, att.employee, att.employee_name, att.department,
+                        format_date(att.attendance_date) or ' ', att.custom_ot_hours or ' ',
+                        att.shift or ' ')
+            idx += 1
     if no_ot:
         staff = """
         <div style="text-align: center;">
@@ -1688,108 +1253,25 @@ def ot_hours_mail_alert():
         WHERE `tabHas Role`.role = "HOD" AND `tabUser`.enabled = 1
     """, as_dict=True)
 
-    if attendance:
-        for user in users:
-            frappe.sendmail(
-                recipients=[user.name],
-                subject='OT Hours Report',
-                message="""Dear Sir,<br><br>
-                    Kindly find the attached Employee OT Hours List for yesterday:<br>{0}
-                """.format(staff)
-            )
+    # if not no_ot:
+    for user in users:
+        frappe.sendmail(
+            recipients=[user.name],
+            subject='OT Hours Report',
+            message="""Dear Sir,<br><br>
+                Kindly find the attached Employee OT Hours List for yesterday:<br>{0}
+            """.format(staff)
+        )
         
     # Send email to the predefined recipients
     frappe.sendmail(
-        recipients=['arockia.k@groupteampro.com', 'sivarenisha.m@groupteampro.com', 'anil.p@groupteampro.com'],
+        recipients=['sarath.v@groupteampro.com','orkun.ulu@teknorot.com', 'sivarenisha.m@groupteampro.com', 'anil.p@groupteampro.com','jenisha.p@groupteampro.com'],
         subject='OT Hours Report',
         message="""Dear Sir,<br><br>
             Kindly find the attached Employee OT Hours List for yesterday:<br>{0}
         """.format(staff)
     )
 
-
-
-@frappe.whitelist()
-def cron_job_ot_mail_alert():
-    job = frappe.db.exists('Scheduled Job Type', 'ot_hours_mail_alert')
-    if not job:
-        att = frappe.new_doc("Scheduled Job Type")
-        att.update({
-            "method": 'ir.custom.ot_hours_mail_alert',
-            "frequency": 'Cron',
-            "cron_format": '0 8 * * *'
-        })
-        att.save(ignore_permissions=True)
-
-# @frappe.whitelist()
-# def late_entry_mail_alert():
-#     yesterday = add_days(frappe.utils.today(), -1)
-#     attendance = frappe.db.sql("""
-#         SELECT * FROM tabAttendance
-#         WHERE attendance_date = %s AND docstatus != 2
-#         order by employee
-#     """, (yesterday,), as_dict=True)
-#     staff = """
-#         <div style="text-align: center;">
-#             <h2 style="font-size: 16px;">Late Entry Report</h2>
-#         </div>
-#         <table style="border-collapse: collapse; width: 100%; border: 1px solid black; font-size: 10px;">
-#             <tr style="border: 1px solid black;">
-#                 <th style="padding: 4px; border: 1px solid black;">Employee</th>
-#                 <th style="padding: 4px; border: 1px solid black;">Employee Name</th>
-#                 <th style="padding: 4px; border: 1px solid black;">Department</th>
-#                 <th style="padding: 4px; border: 1px solid black;">Attendance Date</th>
-#                 <th style="padding: 4px; border: 1px solid black;">Late Entry Time</th>
-#                 <th style="padding: 4px; border: 1px solid black;">Shift</th>
-#             </tr>
-#     """
-#     no_ot = True
-#     for att in attendance:
-#         if att.late_entry:
-#             if att.custom_late_entry_time:
-#                 dt = datetime.strptime(str(att.custom_late_entry_time), "%H:%M:%S.%f")
-#                 time_string_no_ms = dt.strftime("%H:%M:%S")
-#                 no_ot = False
-#                 staff += """
-#                 <tr style="border: 1px solid black;">
-#                     <td style="padding: 4px; border: 1px solid black;">{0}</td>
-#                     <td style="padding: 4px; border: 1px solid black;">{1}</td>
-#                     <td style="padding: 4px; border: 1px solid black;">{2}</td>
-#                     <td style="padding: 4px; border: 1px solid black;text-align: center;">{3}</td>
-#                     <td style="padding: 4px; border: 1px solid black;text-align: center;">{4}</td>
-#                     <td style="padding: 4px; border: 1px solid black;text-align: center;">{5}</td>
-#                 </tr>
-#                 """.format(att.employee, att.employee_name, att.department,
-#                         format_date(att.attendance_date) or ' ',time_string_no_ms or ' ',
-#                             att.shift or ' ')
-#     if no_ot:
-#         staff = """
-#         <div style="text-align: center;">
-#             <h2 style="font-size: 16px;">No Late Entry for yesterday.</h2>
-#         </div>
-#         """
-#     else:
-#         staff += "</table>"
-#     if attendance:	
-#         frappe.sendmail(
-#                 recipients=['arockia.k@groupteampro.com', 'dilek.ulu@irecambioindia.com', 'hr@irecambioindia.com', 'prabakar@irecambioindia.com', 'deepak.krishnamoorthy@irecambioindia.com', 'anil.p@groupteampro.com','sivarenisha.m@groupteampro.com','jenisha.p@groupteampro.com'],
-#                 subject='Late Entry Report',
-#                 message="""Dear Sir,<br><br>
-#                         Kindly find the attached Employee Late Entry List for yesterday:<br>{0}
-#                         """.format(staff)
-#             )
-
-@frappe.whitelist()
-def cron_late_entry():
-    job = frappe.db.exists('Scheduled Job Type', 'late_entry_mail_alert')
-    if not job:
-        att = frappe.new_doc("Scheduled Job Type")
-        att.update({
-            "method": 'ir.custom.late_entry_mail_alert',
-            "frequency": 'Cron',
-            "cron_format": '0 8 * * *'
-        })
-        att.save(ignore_permissions=True)
 
 
 
@@ -1815,15 +1297,11 @@ def restrict_for_zero_balance(doc, method):
         if not doc.leave_type == 'Leave Without Pay':
             total_leave_days_present=0
             total_lbalance=doc.leave_balance
-            draft_leave_applications = frappe.get_all("Leave Application", {"employee": doc.employee,"docstatus":0 ,"leave_type": doc.leave_type},["*"])
+            draft_leave_applications = frappe.get_all("Leave Application", {"employee": doc.employee,"docstatus":0 ,"leave_type": doc.leave_type,"workflow_state":("!=","Rejected")},["*"])
             for i in draft_leave_applications:
-                frappe.errprint(i.name)
                 total_leave_days_present+=i.total_leave_days
             total_leave_days_present += doc.total_leave_days
             available=total_lbalance-total_leave_days_present
-            frappe.errprint(total_lbalance)
-            frappe.errprint(total_leave_days_present)
-            frappe.errprint(available)
             if available < 0 :
                 frappe.throw("Insufficient leave balance for this leave type")
 
@@ -1840,15 +1318,11 @@ def first_manager_name():
 def update_ot_request_setting():
     from_date = "2024-07-01"
     to_date = "2024-07-31"
-    frappe.errprint('Hello')
     attendance = frappe.get_all("Attendance", filters={"attendance_date":("between",(from_date,to_date)), "docstatus": ("!=", 2)}, fields=["*"])
     for att in attendance:
         if att.shift and att.in_time and att.out_time:
-            frappe.errprint('Work')
             if att.custom_ot_hours and att.custom_ot_hours > timedelta(hours=0, minutes=0, seconds=0):
-                frappe.errprint('In')
                 if att.status !="Absent":
-                    frappe.errprint('Working')
                     ot_plan = frappe.db.sql("""SELECT t1.planned_ot_hrs
                                             FROM `tabOT Employee` AS t1 
                                             LEFT JOIN `tabOver Time Plan` AS t2 
@@ -1864,7 +1338,6 @@ def update_ot_request_setting():
                             req.save(ignore_permissions=True)
                             req.submit()
                         else:
-                            frappe.errprint('Worked')
                             req = frappe.new_doc("Over Time Request")
                             req.employee = att.employee
                             req.ot_date = att.attendance_date
@@ -1895,8 +1368,7 @@ def head_count_mail_alert():
     data = get_data(yesterday)
     html_report = generate_html_report(data)
 
-    # recipients = ['amar.p@groupteampro.com', 'sivarenisha.m@groupteampro.com']
-    recipients = ['amar.p@groupteampro.com', 'dilek.ulu@irecambioindia.com', 'hr@irecambioindia.com',
+    recipients = ['sarath.v@groupteampro.com', 'dilek.ulu@irecambioindia.com', 'hr@irecambioindia.com',
     'prabakar@irecambioindia.com', 'deepak.krishnamoorthy@irecambioindia.com','sivarenisha.m@groupteampro.com','jenisha.p@groupteampro.com']
     
     frappe.sendmail(
@@ -1951,56 +1423,58 @@ def get_data(yesterday):
         department = dept.department
 
         shift1_data = frappe.db.sql("""
-            SELECT COUNT(status) AS shift1_count, SUM(custom_ot_hours) AS shift1_overtime
-            FROM `tabAttendance`
-            WHERE attendance_date =%s
-            AND docstatus != 2
-            AND in_time IS NOT NULL
-            AND department = %s 
-            AND shift = '1'
-        """, (yesterday, department), as_dict=True)
+			SELECT COUNT(`tabAttendance`.status) AS shift1_count, SUM(`tabAttendance`.custom_ot_hours) AS shift1_overtime
+			FROM `tabAttendance` LEFT JOIN `tabEmployee` ON `tabAttendance`.employee = `tabEmployee`.name
+			WHERE `tabAttendance`.attendance_date = %s
+			AND `tabAttendance`.docstatus != 2
+			AND `tabAttendance`.in_time IS NOT NULL
+			AND `tabAttendance`.department = %s 
+			AND `tabAttendance`.shift = '1' AND `tabEmployee`.employment_type !='Agency'
+		""", (yesterday, department), as_dict=True)
 
         shift1_count = shift1_data[0].shift1_count if shift1_data and shift1_data[0].shift1_count is not None else 0
         shift1_overtime = shift1_data[0].shift1_overtime if shift1_data and shift1_data[0].shift1_overtime is not None else 0.0
         shift1_overtime_hours = flt(shift1_overtime) / 10000
 
         shift2_data = frappe.db.sql("""
-            SELECT COUNT(status) AS shift2_count, SUM(custom_ot_hours) AS shift2_overtime
-            FROM `tabAttendance`
-            WHERE attendance_date =%s
-            AND docstatus != 2
-            AND in_time IS NOT NULL
-            AND department = %s 
-            AND shift = '2'
-        """, (yesterday, department), as_dict=True)
+			SELECT COUNT(`tabAttendance`.status) AS shift2_count, SUM(`tabAttendance`.custom_ot_hours) AS shift2_overtime
+			FROM `tabAttendance` LEFT JOIN `tabEmployee` ON `tabAttendance`.employee = `tabEmployee`.name
+			WHERE `tabAttendance`.attendance_date =%s
+			AND `tabAttendance`.docstatus != 2
+			AND `tabAttendance`.in_time IS NOT NULL
+			AND `tabAttendance`.department = %s 
+			AND `tabAttendance`.shift = '2' AND `tabEmployee`.employment_type !='Agency'
+		""", (yesterday, department), as_dict=True)
+
 
         shift2_count = shift2_data[0].shift2_count if shift2_data and shift2_data[0].shift2_count is not None else 0
         shift2_overtime = shift2_data[0].shift2_overtime if shift2_data and shift2_data[0].shift2_overtime is not None else 0.0
         shift2_overtime_hours = flt(shift2_overtime) / 10000
         
         shiftg_data = frappe.db.sql("""
-            SELECT COUNT(status) AS shiftg_count, SUM(custom_ot_hours) AS shiftg_overtime
-            FROM `tabAttendance`
-            WHERE attendance_date =%s
-            AND docstatus != 2
-            AND in_time IS NOT NULL
-            AND department = %s 
-            AND shift = 'G'
-        """, (yesterday, department), as_dict=True)
+			SELECT COUNT(`tabAttendance`.status) AS shiftg_count, SUM(`tabAttendance`.custom_ot_hours) AS shiftg_overtime
+			FROM `tabAttendance` LEFT JOIN `tabEmployee` ON `tabAttendance`.employee = `tabEmployee`.name
+			WHERE `tabAttendance`.attendance_date = %s
+			AND `tabAttendance`.docstatus != 2
+			AND `tabAttendance`.in_time IS NOT NULL
+			AND `tabAttendance`.department = %s 
+			AND `tabAttendance`.shift = 'G' AND `tabEmployee`.employment_type !='Agency'
+		""", (yesterday, department), as_dict=True)
+
 
         shiftg_count = shiftg_data[0].shiftg_count if shiftg_data and shiftg_data[0].shiftg_count is not None else 0
         shiftg_overtime = shiftg_data[0].shiftg_overtime if shiftg_data and shiftg_data[0].shiftg_overtime is not None else 0.0
         shiftg_overtime_hours = flt(shiftg_overtime) / 10000
 
         shift3_data = frappe.db.sql("""
-            SELECT COUNT(status) AS shift3_count, SUM(custom_ot_hours) AS shift3_overtime
-            FROM `tabAttendance`
-            WHERE attendance_date =%s
-            AND docstatus != 2
-            AND in_time IS NOT NULL
-            AND department = %s 
-            AND shift = '3'
-        """, (yesterday, department), as_dict=True)
+			SELECT COUNT(`tabAttendance`.status) AS shift3_count, SUM(`tabAttendance`.custom_ot_hours) AS shift3_overtime
+			FROM `tabAttendance` LEFT JOIN `tabEmployee` ON `tabAttendance`.employee = `tabEmployee`.name
+			WHERE `tabAttendance`.attendance_date = %s
+			AND `tabAttendance`.docstatus != 2
+			AND `tabAttendance`.in_time IS NOT NULL
+			AND `tabAttendance`.department = %s 
+			AND `tabAttendance`.shift = '3' AND `tabEmployee`.employment_type !='Agency'
+		""", (yesterday, department), as_dict=True)
 
         shift3_count = shift3_data[0].shift3_count if shift3_data and shift3_data[0].shift3_count is not None else 0
         shift3_overtime = shift3_data[0].shift3_overtime if shift3_data and shift3_data[0].shift3_overtime is not None else 0.0
@@ -2037,25 +1511,15 @@ def get_data(yesterday):
     data.append(row)
     return data
 
-@frappe.whitelist()
-def cron_job_head_count():
-    job = frappe.db.exists('Scheduled Job Type', 'head_count_mail_alert')
-    if not job:
-        att = frappe.new_doc("Scheduled Job Type")
-        att.update({
-            "method": 'ir.custom.head_count_mail_alert',
-            "frequency": 'Cron',
-            "cron_format": '0 8 * * *'
-        })
-        att.save(ignore_permissions=True)
 
 @frappe.whitelist()
 def late_entry_mail_alert_for_G_shift():
     today = frappe.utils.today()
     attendance = frappe.db.sql("""
-        SELECT * FROM tabAttendance
-        WHERE attendance_date = %s AND docstatus != 2
-        order by employee
+        SELECT * FROM `tabAttendance` LEFT JOIN `tabEmployee` 
+        ON `tabAttendance`.employee = `tabEmployee`.name
+        WHERE `tabAttendance`.attendance_date = %s AND `tabAttendance`.docstatus != 2 and `tabEmployee`.employment_type!='Agency'
+        order by `tabAttendance`.employee
     """, (today,), as_dict=True)
     staff = """
         <div style="text-align: center;">
@@ -2100,33 +1564,21 @@ def late_entry_mail_alert_for_G_shift():
         staff += "</table>"
     if attendance:	
         frappe.sendmail(
-                # recipients=['amar.p@groupteampro.com', 'jenisha.p@groupteampro.com', 'sivarenisha.m@groupteampro.com'],
-                recipients=['amar.p@groupteampro.com', 'dilek.ulu@irecambioindia.com', 'hr@irecambioindia.com', 'prabakar@irecambioindia.com', 'deepak.krishnamoorthy@irecambioindia.com', 'anil.p@groupteampro.com','sivarenisha.m@groupteampro.com','jenisha.p@groupteampro.com'],
+                recipients=['sarath.v@groupteampro.com', 'dilek.ulu@irecambioindia.com', 'hr@irecambioindia.com', 'prabakar@irecambioindia.com', 'deepak.krishnamoorthy@irecambioindia.com', 'anil.p@groupteampro.com','sivarenisha.m@groupteampro.com','jenisha.p@groupteampro.com'],
                 subject='Late Entry Report',
                 message="""Dear Sir,<br><br>
                         Kindly find the attached Employee Late Entry List for today:<br>{0}
                         """.format(staff)
             )
-
-@frappe.whitelist()
-def cron_job_late_entry_for_G_shift():
-    job = frappe.db.exists('Scheduled Job Type', 'late_entry_mail_alert_for_G_shift')
-    if not job:
-        att = frappe.new_doc("Scheduled Job Type")
-        att.update({
-            "method": 'ir.custom.late_entry_mail_alert_for_G_shift',
-            "frequency": 'Cron',
-            "cron_format": '30 08 * * *'
-        })
-        att.save(ignore_permissions=True)
   
 @frappe.whitelist()
 def late_entry_mail_alert_for_2_shift():
     today = frappe.utils.today()
     attendance = frappe.db.sql("""
-        SELECT * FROM tabAttendance
-        WHERE attendance_date = %s AND docstatus != 2
-        order by employee
+        SELECT * FROM `tabAttendance` LEFT JOIN `tabEmployee` 
+        ON `tabAttendance`.employee = `tabEmployee`.name
+        WHERE `tabAttendance`.attendance_date = %s AND `tabAttendance`.docstatus != 2 and `tabEmployee`.employment_type!='Agency'
+        order by `tabAttendance`.employee
     """, (today,), as_dict=True)
     staff = """
         <div style="text-align: center;">
@@ -2171,8 +1623,7 @@ def late_entry_mail_alert_for_2_shift():
         staff += "</table>"
     if attendance:	
         frappe.sendmail(
-                # recipients=['amar.p@groupteampro.com', 'jenisha.p@groupteampro.com', 'sivarenisha.m@groupteampro.com'],
-                recipients=['amar.p@groupteampro.com', 'dilek.ulu@irecambioindia.com', 'hr@irecambioindia.com', 'prabakar@irecambioindia.com', 'deepak.krishnamoorthy@irecambioindia.com', 'anil.p@groupteampro.com','sivarenisha.m@groupteampro.com','jenisha.p@groupteampro.com'],
+                recipients=['sarath.v@groupteampro.com', 'dilek.ulu@irecambioindia.com', 'hr@irecambioindia.com', 'prabakar@irecambioindia.com', 'deepak.krishnamoorthy@irecambioindia.com', 'anil.p@groupteampro.com','sivarenisha.m@groupteampro.com','jenisha.p@groupteampro.com'],
                 subject='Late Entry Report',
                 message="""Dear Sir,<br><br>
                         Kindly find the attached Employee Late Entry List for today:<br>{0}
@@ -2180,211 +1631,391 @@ def late_entry_mail_alert_for_2_shift():
             )
 
 @frappe.whitelist()
-def cron_job_late_entry_for_evng_shift():
-    job = frappe.db.exists('Scheduled Job Type', 'late_entry_mail_alert_for_2_shift')
-    if not job:
-        att = frappe.new_doc("Scheduled Job Type")
-        att.update({
-            "method": 'ir.custom.late_entry_mail_alert_for_2_shift',
-            "frequency": 'Cron',
-            "cron_format": '0 18 * * *'
-        })
-        att.save(ignore_permissions=True)
-
-# @frappe.whitelist()
-# def update_attendance_status():
-#     frappe.db.sql("""
-#         UPDATE `tabAttendance`
-#             SET custom_early_out_time = "00:00:00" , custom_total_working_hours = "00:00:00" , custom_ot_hours = "00:00:00" , custom_late_entry_time = "00:00:00"
-#             WHERE status = 'On Leave' and status = 'Absent'
-#         """)
-#     frappe.db.sql("""update `tabAttendance` set custom_late_entry_time = "00:00:00" where late_entry = 0 """,as_dict = True)
-
-    # checkin = frappe.db.sql("""update `tabAttendance` set status = 'Present' where name= 'HR-ATT-2024-44664' """,as_dict = True)
-    
-    
-# import frappe
-# from datetime import datetime, timedelta
-
-# @frappe.whitelist()
-# def mark_cc(from_date,to_date):
-#     attendance = frappe.db.get_all('Attendance', filters={
-#         'attendance_date': ['between', (from_date, to_date)],
-#         'docstatus': ['!=', '2']
-#     }, fields=['name', 'shift', 'in_time', 'out_time', 'employee', 'custom_on_duty_application', 'employee_name', 'department', 'attendance_date', 'status'])
-
-#     for att in attendance:
-#         in_time1 = att.in_time
-#         out_time1 = att.out_time
-
-#         if in_time1 and out_time1:
-
-            
-#             if in_time1.date() != out_time1.date():
-#                 if att.attendance_date == in_time1.date():
-#                     out_time1 = datetime.combine(att.attendance_date, datetime.min.time()) + timedelta(days=1)
-
-            
-#             shift_doc = frappe.get_value('Shift Type', {'name': att.shift}, ['custom_night_shift'])
-#             if shift_doc == 1:
-               
-#                 cc_exists = frappe.db.exists('Canteen Coupons', {'employee': att.employee, 'date': att.attendance_date})
-#                 if not cc_exists:
-                    
-#                     cc = frappe.new_doc('Canteen Coupons')
-#                     cc.employee = att.employee
-#                     cc.employee_name = att.employee_name
-#                     cc.department = att.department
-#                     cc.date = att.attendance_date
-#                     cc.attendance = att.name
-
-                   
-#                     items_to_add = []
-#                     fm = frappe.db.sql("""SELECT * FROM `tabFood Menu` ORDER BY serial_no""", as_dict=True)
-#                     for f in fm:
-#                         items_to_add.append({
-#                             'item': f.name,
-#                             'status': 0
-#                         })
-
-#                     cc.set('items', items_to_add)
-#                 else:
-                    
-#                     cc = frappe.get_doc('Canteen Coupons', {'employee': att.employee, 'date': att.attendance_date})
-
-                
-#                 time_in = in_time1.time()
-#                 time_out = out_time1.time()
-
-               
-#                 for item in cc.get('items'):
-#                     food_menu = frappe.get_doc('Food Menu', item.get('item'))
-
-#                     from_time = (datetime.min + food_menu.from_time).time()
-#                     to_time = (datetime.min + food_menu.to_time).time()
-
-                   
-#                     if time_in <= to_time and time_out >= from_time:
-#                         item.status = 1
-#                     elif item.item == "Dinner" and time_out <= to_time:
-#                         item.status = 1
-
-                
-#                 cc.save(ignore_permissions=True)
-#                 frappe.db.commit()
-
-
-
-
-import frappe
-
-@frappe.whitelist()
-def update_second_manager():
-    
-    overtime_requests = frappe.db.get_all('Over Time Request', ['name', 'employee'])
-    
-    for request in overtime_requests:
-        
-        second_manager, second_manager_name = frappe.db.get_value('Employee', request['employee'], ['custom_second_manager', 'custom_second_manager_name'])
-
-        if second_manager and second_manager_name:
-            
-            frappe.db.set_value('Over Time Request', request['name'], {
-                'custom_second_manager': second_manager,
-                'custom_second_manager_name': second_manager_name
-            })
-
-def ot_calculation():
-    from_date = "2024-08-01"
-    to_date = "2024-08-18"
-    attendance = frappe.db.sql("""select * from `tabAttendance` where attendance_date between '%s' and '%s' """%(from_date,to_date),as_dict=True)
-    for att in attendance:
-        ot_hours = '00:00:00'
-        if att.shift and att.out_time and att.in_time :
-            shift_et = frappe.db.get_value("Shift Type",{'name':att.shift},['end_time'])
-            night_shift = frappe.db.get_value("Shift Type",{"name":att.shift},["custom_night_shift"])
-            if night_shift == 1:
-                if att.attendance_date != datetime.date(att.out_time):
-                    out_time = datetime.strptime(str(att.out_time),'%Y-%m-%d %H:%M:%S').time()
-                    shift_et = datetime.strptime(str(shift_et), '%H:%M:%S').time()
-                    if shift_et < out_time:
-                        difference = time_diff_in_timedelta_1(shift_et,out_time)
-                        diff_time = datetime.strptime(str(difference), '%H:%M:%S').time()
-                        
-                        if diff_time.hour > 0 <3:
-                            if diff_time.minute >= 50:
-                                ot_hours = time(diff_time.hour+1,0,0)
-                            else:
-                                ot_hours = time(diff_time.hour,0,0)
-                        elif diff_time.hour == 0:
-                            if diff_time.minute >= 50:
-                                ot_hours = time(1,0,0)
-                            else:
-                                ot_hours = "00:00:00" 
-                        elif diff_time.hour > 3:
-                            if diff_time.minute >= 50:
-                                ot_hours = time(diff_time.hour-1,0,0)
-                            else:
-                                ot_hours = time(diff_time.hour-1,0,0)
-                        else:
-                            ot_hours = "00:00:00"
-                    else:
-                        ot_hours = "00:00:00"
-                else:
-                    ot_hours = "00:00:00"
-            else:
-                out_time = datetime.strptime(str(att.out_time),'%Y-%m-%d %H:%M:%S').time()
-                shift_et = datetime.strptime(str(shift_et), '%H:%M:%S').time()
-                if shift_et < out_time:
-                    difference = time_diff_in_timedelta_1(shift_et,out_time)
-                    diff_time = datetime.strptime(str(difference), '%H:%M:%S').time()
-                    
-                    if diff_time.hour > 0 <3:
-                        if diff_time.minute >= 50:
-                            ot_hours = time(diff_time.hour+1,0,0)
-                        else:
-                            ot_hours = time(diff_time.hour,0,0)
-                    elif diff_time.hour == 0:
-                        if diff_time.minute >= 50:
-                            ot_hours = time(1,0,0)
-                        else:
-                            ot_hours = "00:00:00" 
-                    elif diff_time.hour > 3:
-                        if diff_time.minute >= 50:
-                            ot_hours = time(diff_time.hour-1,0,0)
-                        else:
-                            ot_hours = time(diff_time.hour-1,0,0)
-                    else:
-                        ot_hours = "00:00:00"
-                else:
-                    ot_hours = "00:00:00"
-        else:
-            ot_hours = "00:00:00"
-        print(ot_hours)
-        frappe.db.set_value("Attendance",att.name,"custom_ot_hours",ot_hours)
-        if ot_hours !='00:00:00':
-            ftr = [3600,60,1]
-            hr = sum([a*b for a,b in zip(ftr, map(int,str(ot_hours).split(':')))])
-            ot_hr = round(hr/3600,1)
-        else:
-            ot_hr = '0.0'	
-        
-        frappe.db.set_value("Attendance",att.name,"custom_over_time_hours",ot_hr)
-        
-    
-@frappe.whitelist()
 def check_on_duty(doc, method):
     value = frappe.db.sql("""
-        SELECT name FROM `tabOn Duty Application` 
-        WHERE employee = %s 
-        AND docstatus != 2 
-        AND (from_date BETWEEN %s AND %s OR from_date BETWEEN %s AND %s 
-             OR (from_date <= %s AND from_date >= %s))
-        AND from_date_session = 'Full Day'
+        SELECT `tabOn Duty Application`.name FROM `tabOn Duty Application` 
+        LEFT JOIN `tabEmployee`
+        ON `tabOn Duty Application` .employee = `tabEmployee`.name
+        WHERE `tabOn Duty Application`.employee = %s 
+        AND `tabOn Duty Application` .docstatus != 2 
+        AND (`tabOn Duty Application`.from_date BETWEEN %s AND %s OR `tabOn Duty Application` .from_date BETWEEN %s AND %s 
+             OR (`tabOn Duty Application` .from_date <= %s AND `tabOn Duty Application` .from_date >= %s))
+        AND `tabOn Duty Application` .from_date_session = 'Full Day' and `tabEmployee`.employment_type!='Agency'
     """, (doc.employee, doc.from_date, doc.to_date, doc.from_date, doc.to_date, doc.from_date, doc.to_date))
 
     if value:
         frappe.throw("You have already applied for an On Duty Application for the same or overlapping date range.")
         
+#Get the salary slip total
+@frappe.whitelist()
+def get_mandays_amount(contractor):
+	man_days_amount = frappe.db.sql("""select sum(rounded_total) from `tabSalary Slip` where docstatus != 2  and custom_agency='%s' """%(contractor),as_dict = 1)[0]
+	return man_days_amount['sum(rounded_total)'] 
+
+
+from frappe.utils import cstr, cint, getdate,get_first_day, get_last_day, today, time_diff_in_hours
+#Warning mail for late entry      
+@frappe.whitelist()
+def update_late_deduction():
+    month_start = get_first_day(today()) 
+    today_date = today() 
+    
+    attendance = frappe.db.sql("""
+        SELECT * FROM `tabAttendance` LEFT JOIN `tabEmployee` 
+        ON `tabAttendance`.employee = `tabEmployee`.name
+        WHERE `tabAttendance`.attendance_date >= %s AND `tabAttendance`.attendance_date <= %s AND `tabAttendance`.docstatus != 2 and `tabEmployee`.employment_type!='Agency'
+        order by `tabAttendance`.employee
+    """, (month_start, today_date), as_dict=True)
+
+    late = 0  # Counter for late entries
+    late_min = 0  # Total late minutes across all late entries
+
+    for att in attendance:
+        if att.in_time and att.shift:
+            # Get shift start time
+            shift_st = frappe.db.get_value("Shift Type", {'name': att.shift}, ['start_time'])
+
+            # Convert times to datetime objects for comparison
+            in_time = datetime.strptime(str(att.in_time), '%Y-%m-%d %H:%M:%S').time()
+            shift_st = datetime.strptime(str(shift_st), '%H:%M:%S').time()
+
+            # Check if the employee is late
+            if shift_st < in_time:
+                difference = time_diff_in_timedelta_1(shift_st, in_time)  # Calculate time difference
+                diff_time = datetime.strptime(str(difference), '%H:%M:%S').time()
+
+                late_min += diff_time.minute  # Add to total late minutes
+                frappe.db.set_value("Attendance", att.name, 'custom_late', difference)  # Set custom late field
+
+                if diff_time.minute > 0:
+                    late += 1
+                    if late == 1 and diff_time.minute >= 15:
+                        pass
+                    elif late == 2 and diff_time.minute >= 15:
+                        if late_min >= 30:
+                            send_late_warning_email(att.employee)
+                            frappe.db.set_value("Attendance", att.name, 'late_entry', 1)
+                    elif late > 2 and late < 5:
+                        if not att.custom_late:
+                            send_late_warning_email(att.employee)
+
+def send_late_warning_email(employee):
+    emp_email = frappe.get_value("Employee", {"name": employee}, ['user_id'])
+    if emp_email:
+        frappe.sendmail(
+                recipients=[emp_email],
+                subject=_("Warning - Late Entry"),
+                message="""
+                    Dear %s,<br> Already you have taken your two times 15 minutes grace time per month. If you have marked as another late, Half Day will be Deducted from your Leave Balance <br><br>Thanks & Regards,<br>IRINDIA<br>"This email has been automatically generated. Please do not reply"
+                    """%(employee)
+            )
+
+    
+def create_hooks_mark_late():
+    job = frappe.db.exists('Scheduled Job Type', 'attendance_for_one_month')
+    if not job:
+        sjt = frappe.new_doc("Scheduled Job Type")
+        sjt.update({
+            "method": 'ir.mark_attendance.mark_att_process_manual_for_one_month',
+            "frequency": 'Cron',
+            "cron_format": "0 0 28-31 * *"
+        })
+        sjt.save(ignore_permissions=True)
+    
+
+@frappe.whitelist()
+#send a mail alert if any scheduled job failed
+def schedule_log_fail(doc,method):
+    if doc.status=='Failed':
+        message = """
+        The schedule Job type <b>{}</b> is failed.<br> Kindly check the log <b>{}</b>""".format(doc.scheduled_job_type,doc.name)
+        frappe.sendmail(
+                recipients=["erp@groupteampro.com"],
+                subject='Scheduled Job type failed(IR)',
+                message=message
+            )
         
-                
+@frappe.whitelist()
+def update_employee_number(doc, new_name, old_name, merge, method):
+    frappe.db.set_value("Employee",doc.name,"employee_number",doc.name)
+    
+    
+@frappe.whitelist()
+def diff_emp_no():
+    employee = frappe.get_all("Employee",["name","employee_number"])
+    for i in employee:
+        if not i.name == i.employee_number:
+            print(i.name)
+            
+@frappe.whitelist()
+#send a mail alert if any scheduled job failed
+def schedule_log_failed(name,schedule):
+    # if doc.status=='Failed':
+    message = """
+    The schedule Job type <b>{}</b> is failed.<br> Kindly check the log <b>{}</b>
+    """.format(schedule,name)
+    frappe.sendmail(
+            recipients=["erp@groupteampro.com"],
+            subject='Scheduled Job type failed(IR)',
+            message=message
+        )
+    
+    
+# import frappe
+# import random
+# from frappe.utils import today
+
+# def send_birthday_wishes_for_employee():
+#     current_month_day = today()[5:] 
+#     employees = frappe.get_all(
+#     "Employee",
+#     filters={"status": "Active", "employment_type": ["!=", "Agency"]},
+#     fields=["name", "employee_name", "user_id", "date_of_birth"]
+# )
+
+#     matching_employees = []
+#     for emp in employees:
+#         if emp["date_of_birth"]:  
+#             emp_month_day = emp["date_of_birth"].strftime("%m-%d")
+#             if emp_month_day == current_month_day:
+#                 matching_employees.append(emp)
+
+#     if not matching_employees:
+#         return
+
+#     for employee in matching_employees:
+#     # selected_message = random.choice(greeting_messages)
+#         email_content = f"""
+#         <p>Birthday Reminder 🎂</p>
+#         <p>Today is {employee['employee_name']} birthday 🎉</p>
+#         <p>A friendly reminder of an important date for our team.</p>
+#         <p>Everyone, let’s congratulate {employee['employee_name']} on their birthday.</p>
+#         <p>Best Regards,<br>Industrias Del Recambio India Pvt Ltd</p>
+#         """
+
+#         frappe.sendmail(
+#             # recipients=[employee["user_id"]],
+#             recipients="divya.p@groupteampro.com",
+#             subject="Birthday Reminder",
+#             message=email_content
+#         )
+
+
+        
+# ------------------
+# BIRTHDAY REMINDERS
+# ------------------
+def send_birthday_reminders():
+	"""Send Employee birthday reminders if no 'Stop Birthday Reminders' is not set."""
+
+	# to_send = int(frappe.db.get_single_value("HR Settings", "send_birthday_reminders"))
+	# if not to_send:
+	# 	return
+
+	sender = get_sender_email()
+	employees_born_today = get_employees_who_are_born_today()
+
+	for company, birthday_persons in employees_born_today.items():
+		employee_emails = get_all_employee_emails(company)
+		birthday_person_emails = [get_employee_email(doc) for doc in birthday_persons]
+		recipients = list(set(employee_emails) - set(birthday_person_emails))
+
+		reminder_text, message = get_birthday_reminder_text_and_message(birthday_persons)
+		send_birthday_reminder(recipients, reminder_text, birthday_persons, message, sender)
+
+		if len(birthday_persons) > 1:
+			# special email for people sharing birthdays
+			for person in birthday_persons:
+				person_email = person["user_id"] or person["personal_email"] or person["company_email"]
+				others = [d for d in birthday_persons if d != person]
+				reminder_text, message = get_birthday_reminder_text_and_message(others)
+				send_birthday_reminder(person_email, reminder_text, others, message, sender)
+
+
+def get_birthday_reminder_text_and_message(birthday_persons):
+	if len(birthday_persons) == 1:
+		birthday_person_text = birthday_persons[0]["name"]
+	else:
+		# converts ["Jim", "Rim", "Dim"] to Jim, Rim & Dim
+		person_names = [d["name"] for d in birthday_persons]
+		birthday_person_text = comma_sep(person_names, frappe._("{0} & {1}"), False)
+
+	reminder_text = _("Today is {0}'s birthday 🎉").format(birthday_person_text)
+	message = _("A friendly reminder of an important date for our team.")
+	message += "<br>"
+	message += _("Everyone, let’s congratulate {0} on their birthday.").format(birthday_person_text)
+
+	return reminder_text, message
+
+
+def send_birthday_reminder(recipients, reminder_text, birthday_persons, message, sender=None):
+	frappe.sendmail(
+		sender=sender,
+		recipients=recipients,
+		subject=_("Birthday Reminder"),
+        # recipients='divya.p@groupteampro.com',
+		template="birthday_reminder",
+		args=dict(
+			reminder_text=reminder_text,
+			birthday_persons=birthday_persons,
+			message=message,
+		),
+		header=_("Birthday Reminder 🎂"),
+	)
+
+
+def get_employees_who_are_born_today():
+	"""Get all employee born today & group them based on their company"""
+	return get_employees_having_an_event_today("birthday")
+
+
+def get_employees_having_an_event_today(event_type):
+	"""Get all employee who have `event_type` today
+	& group them based on their company. `event_type`
+	can be `birthday` or `work_anniversary`"""
+
+	from collections import defaultdict
+
+	# Set column based on event type
+	if event_type == "birthday":
+		condition_column = "date_of_birth"
+
+	employees_born_today = frappe.db.multisql(
+		{
+			"mariadb": f"""
+			SELECT `personal_email`, `company`, `company_email`, `user_id`, `employee_name` AS 'name', `image`, `date_of_joining`
+			FROM `tabEmployee`
+			WHERE
+				DAY({condition_column}) = DAY(%(today)s)
+			AND
+				MONTH({condition_column}) = MONTH(%(today)s)
+			AND
+				YEAR({condition_column}) < YEAR(%(today)s)
+			AND
+				`status` = 'Active'
+            AND 
+                `employment_type`!='Agency'
+		""",
+			"postgres": f"""
+			SELECT "personal_email", "company", "company_email", "user_id", "employee_name" AS 'name', "image"
+			FROM "tabEmployee"
+			WHERE
+				DATE_PART('day', {condition_column}) = date_part('day', %(today)s)
+			AND
+				DATE_PART('month', {condition_column}) = date_part('month', %(today)s)
+			AND
+				DATE_PART('year', {condition_column}) < date_part('year', %(today)s)
+			AND
+				"status" = 'Active'
+            AND 
+                "employment_type"!='Agency'
+		""",
+		},
+		dict(today=today(), condition_column=condition_column),
+		as_dict=1,
+	)
+
+	grouped_employees = defaultdict(lambda: [])
+
+	for employee_doc in employees_born_today:
+		grouped_employees[employee_doc.get("company")].append(employee_doc)
+
+	return grouped_employees
+
+def get_sender_email() -> str | None:
+	return frappe.db.get_single_value("HR Settings", "sender_email")
+
+# @frappe.whitelist()
+# def task_mail_notification_status ():
+#     job = frappe.db.exists('Scheduled Job Type','send_birthday_reminders')
+#     if not job:
+#         task = frappe.new_doc("Scheduled Job Type")
+#         task.update({
+#             "method": 'ir.custom.send_birthday_reminders',
+#             "frequency": 'Cron',
+#             "cron_format" : '00 00 * * *'
+#         })
+#         task.save(ignore_permissions=True)
+
+@frappe.whitelist()
+def create_job_fail():
+    job = frappe.db.exists('Scheduled Job Type', 'cron_failed')
+    if not job:
+        emc = frappe.new_doc("Scheduled Job Type")
+        emc.update({
+            "method": 'ir.custom.cron_failed_method',
+            "frequency": 'Cron',
+            "cron_format": '*/5 * * * *'
+        })
+        emc.save(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def cron_failed_method():
+    cutoff_time = datetime.now() - timedelta(minutes=5)
+    failed_jobs = frappe.get_all(
+        "Scheduled Job Log",
+        filters={
+            "status": "Failed",
+            "creation": [">=", cutoff_time]
+        },
+        fields=["scheduled_job_type"]
+    )
+    unique_job_types = set()
+    for job in failed_jobs:
+        unique_job_types.add(job['scheduled_job_type'])
+
+    for job_type in unique_job_types:
+        frappe.sendmail(
+            recipients = ["erp@groupteampro.com","jenisha.p@groupteampro.com","pavithra.s@groupteampro.com","gifty.p@groupteampro.com"],
+            subject = 'Failed Cron List - IR',
+            message = 'Dear Sir / Mam <br> Kindly find the below failed Scheduled Job  %s'%(job_type)
+        )
+    
+@frappe.whitelist()
+def total_fixed_value(employee, name):
+    fixed_value = 0
+    slip = frappe.get_doc("Salary Slip", name)
+    for i in slip.earnings:
+        component = frappe.db.get_value('Salary Component', {"name": i.salary_component}, 'custom_field_in_employee_mis')
+        if component:
+            value = frappe.db.get_value('Employee', {"name": employee}, component)
+            if value:
+                fixed_value += value
+    return fixed_value 
+
+
+@frappe.whitelist()
+def update_salary_category():
+    employee = frappe.get_all("Employee",["*"])
+    for emp in employee:
+        if emp.custom_agency_name:
+            frappe.db.set_value("Employee",emp.name,"custom_salary_category",emp.designation)
+
+
+        
+@frappe.whitelist()
+def find_ot_document():
+    ot = frappe.get_all("Employee",{"employee":"S1682"},["employment_type",])
+    for i in ot:
+        print(i.employment_type)  
+        
+def validate_bank_ac_no(doc, method):
+    if doc.bank_ac_no and len(str(doc.bank_ac_no)) != 15:
+        frappe.throw("Only input 15 digits; less than or greater than 15 is not allowed.")
+        
+# @frappe.whitelist()
+# def update_query():
+#     frappe.db.sql("""
+#         UPDATE `tabEmployee`
+#         SET 
+#             custom_pf = '0.00', 
+#             custom_gratuity = '0.00', 
+#             custom_bonus = '0.00', 
+#             ctc = '0.00', 
+#             custom_conveyance = '0.00',
+#             custom_cca='0.00',
+#             custom_hra='0.00'
+#         WHERE name = 'S1636'
+#     """)
+#     frappe.db.commit()

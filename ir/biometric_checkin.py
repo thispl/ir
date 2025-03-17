@@ -21,7 +21,7 @@ def mark_checkin(**args):
 			ec.biometric_pin = args['employee'].upper()
 			ec.biometric_time = args['time']
 			ec.locationdevice_id = args['device_id']
-			if args['device_id'] == 'IN':
+			if args['logtype']=='Walk-IN' or args['logtype']=='Bike-IN':
 				ec.log_type = 'IN'
 			else: 
 				ec.log_type = 'OUT'

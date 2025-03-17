@@ -66,7 +66,11 @@ app_license = "mit"
 # 	"methods": "ir.utils.jinja_methods",
 # 	"filters": "ir.utils.jinja_filters"
 # }
-
+jinja = {
+	"methods": [
+     "ir.custom.total_fixed_value",
+	]
+}
 # Installation
 # ------------
 
@@ -130,18 +134,24 @@ doc_events = {
 #     "Warning":{
 #         "validate":["ir.utils.new_occurrence_count"]
 # 	}
+	"Employee":{
+		"after_rename":"ir.custom.update_employee_number",
+		"validate":"ir.custom.validate_bank_ac_no",
+	},
     "Compensatory Off Request":{
-		"validate": ["ir.ir.doctype.compensatory_off_request.compensatory_off_request.comp_off_applicable","ir.ir.doctype.compensatory_off_request.compensatory_off_request.comp_off_req","ir.ir.doctype.compensatory_off_request.compensatory_off_request.validate_comp_off_app"],
+		"validate": ["ir.ir.doctype.compensatory_off_request.compensatory_off_request.comp_off_applicable","ir.ir.doctype.compensatory_off_request.compensatory_off_request.comp_off_req","ir.ir.doctype.compensatory_off_request.compensatory_off_request.validate_comp_off_app","ir.ir.doctype.compensatory_off_request.compensatory_off_request.comp_off_applicable_employee"],
 		"on_submit":["ir.ir.doctype.compensatory_off_request.compensatory_off_request.comp_off_allocation","ir.ir.doctype.compensatory_off_request.compensatory_off_request.submitted_date"],
 		"on_cancel":"ir.ir.doctype.compensatory_off_request.compensatory_off_request.comp_off_revert",
 	},
 	"Attendance":{
-		"validate":["ir.custom.update_ot_request"],
+		# "validate":["ir.custom.update_ot_request"],
   		"on_submit":"ir.utils.compoff_for_ot",
-    	"on_update":"ir.utils.update_shift"
+    	"on_update":["ir.utils.update_shift"],
 
 	},
- 
+	'Scheduled Job Log':{
+       "on_update":"ir.custom.schedule_log_fail" 
+	},
 	"Shift Request":{
 		"before_submit": "ir.utils.shift_change_req",
 	},
@@ -156,6 +166,9 @@ doc_events = {
     #  },
     "Shift Schedule":{
 		"on_cancel":["ir.ir.doctype.shift_schedule.shift_schedule.shift_cancel"],
+     },
+    "Agency Shift Schedule":{
+		"on_cancel":["ir.ir.doctype.agency_shift_schedule.agency_shift_schedule.shift_cancel"],
      },
     # "Attendance":{
 	# 	"on_update":["ir.utils.update_hours_alternate"]
@@ -174,6 +187,8 @@ doc_events = {
 }
 
 
+
+
 # Scheduled Tasks
 # ---------------
 
@@ -184,7 +199,75 @@ scheduler_events = {
 		],
 		"*/15 * * * *":[
 			"ir.mark_attendance.mark_att_process"
-		]
+		],
+  		"00 00 * * *":[
+			"ir.custom.comp_req"
+		],
+		"0 8 * * *":[
+			"ir.custom.absent_mail_alert"
+		],
+		"0 8 * * *":[
+			"ir.ir.email_alerts.leave_report"
+		],
+		"0 8 * * *":[
+			"ir.custom.od_report"
+		],
+		"0 8 * * *":[
+			"ir.custom.permission_request_report"
+		],
+  		"0 8 * * *":[
+			"ir.custom.permission_request_firstmanager"
+		],
+		"0 8 * * *":[
+			"ir.custom.permission_request_secondmanager"
+		],
+		"0 8 * * *":[
+			"ir.custom.leave_application_secondmanager_test"
+		],
+		"0 8 * * *":[
+			"ir.custom.leave_application_firstmanager_test"
+		],
+		"0 8 * * *":[
+			"ir.custom.leave_application_hod_format"
+		],
+		"0 8 * * *":[
+			"ir.custom.od_hod"
+		],
+		"0 8 * * *":[
+			"ir.custom.od_secondmanager"
+		],
+		"0 8 * * *":[
+			"ir.custom.od_firstmanager_format"
+		],
+		"0 8 * * *":[
+			"ir.custom.ot_hours_mail_alert"
+		],
+  		"0 8 * * *":[
+			"ir.email_alerts.late_entry_mail_alert"
+		],
+		"0 8 * * *":[
+			"ir.custom.head_count_mail_alert"
+		],
+		"30 08 * * *":[
+			"ir.custom.late_entry_mail_alert_for_G_shift",
+   			
+		],
+				
+		"0 18 * * *":[
+			"ir.custom.late_entry_mail_alert_for_2_shift"
+		],
+		"0 8,17 * * *":[
+			"ir.email_alerts.wrong_shift_mail_alert_hr"
+		],
+		"30 8,17 * * *":[
+			"ir.email_alerts.wrong_shift_mail_alert_fm"
+		],
+		"0 8 * * *":[
+			"ir.ir.doctype.miss_punch_application.miss_punch_application.miss_punch_mail_alert"
+		],
+		"*/15 * * * *":[
+			"ir.mark_attendance.mark_att_process"
+		],
 	},
 	# "all": [
 	# 	"ir.tasks.all"

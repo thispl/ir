@@ -10,7 +10,6 @@ frappe.ui.form.on('Resignation Form', {
 					user_id:frm.doc.reports_to
 				},
 				callback(r){
-					console.log(r.message)
 					frm.set_value('reporting_to',r.message)
 				}
 			})

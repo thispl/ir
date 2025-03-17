@@ -33,13 +33,16 @@
   "travel_allowance_rate",
   "total_mandays_amount",
   "total_travel_allowance_amount",
+  "total_canteen_amount",
   "column_break_wwr2",
   "taxable_amount",
   "cgst_amount",
   "sgst_amount",
   "total_amount",
+  "invoice_amount",
   "total_amount_in_words",
-  "amended_from"
+  "amended_from",
+  "total_attendance_bonus_amount"
  ],
  "fields": [
   {
@@ -246,12 +249,27 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "invoice_amount",
+   "fieldtype": "Currency",
+   "label": "Invoice Amount"
+  },
+  {
+   "fieldname": "total_canteen_amount",
+   "fieldtype": "Currency",
+   "label": "Total Canteen Amount"
+  },
+  {
+   "fieldname": "total_attendance_bonus_amount",
+   "fieldtype": "Currency",
+   "label": "Total Attendance Bonus Amount"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-05-17 12:49:46.536372",
+ "modified": "2025-03-07 18:19:31.120794",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "Agency Invoice",
@@ -274,5 +292,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

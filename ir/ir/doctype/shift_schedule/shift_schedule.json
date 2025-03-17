@@ -27,13 +27,6 @@
  ],
  "fields": [
   {
-   "fieldname": "department",
-   "fieldtype": "Link",
-   "label": "Department",
-   "options": "Department",
-   "reqd": 1
-  },
-  {
    "fieldname": "column_break_j7pt",
    "fieldtype": "Column Break"
   },
@@ -110,17 +103,24 @@
    "options": "\nJanuary\nFebruary\nMarch\nApril\nMay\nJune\nJuly\nAugust\nSeptember\nOctober\nNovember\nDecember"
   },
   {
-   "default": "2024",
+   "default": "2025",
    "fieldname": "year",
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Year"
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Department",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-08-14 10:59:03.326528",
+ "modified": "2025-03-01 17:36:36.842636",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "Shift Schedule",
@@ -154,5 +154,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

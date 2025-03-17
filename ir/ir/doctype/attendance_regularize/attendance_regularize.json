@@ -9,6 +9,7 @@
  "engine": "InnoDB",
  "field_order": [
   "employee",
+  "employment_type",
   "category",
   "ot_applicable",
   "column_break_2",
@@ -89,12 +90,14 @@
    "label": "Shift"
   },
   {
+   "allow_on_submit": 1,
    "default": "0",
    "fieldname": "in_time",
    "fieldtype": "Check",
    "label": "In Time"
   },
   {
+   "allow_on_submit": 1,
    "default": "0",
    "fieldname": "out_time",
    "fieldtype": "Check",
@@ -109,24 +112,25 @@
    "fieldname": "corrected_shift",
    "fieldtype": "Link",
    "label": "Corrected Shift",
-   "options": "Shift Type",
-   "reqd": 1
+   "options": "Shift Type"
   },
   {
+   "allow_on_submit": 1,
    "depends_on": "eval:doc.in_time == 1",
    "fieldname": "corrected_in",
    "fieldtype": "Datetime",
    "in_list_view": 1,
    "label": "Corrected In",
-   "reqd": 1
+   "mandatory_depends_on": "eval:doc.in_time == 1"
   },
   {
+   "allow_on_submit": 1,
    "depends_on": "eval:doc.out_time == 1",
    "fieldname": "corrected_out",
    "fieldtype": "Datetime",
    "in_list_view": 1,
    "label": "Corrected Out",
-   "reqd": 1
+   "mandatory_depends_on": "eval:doc.out_time == 1"
   },
   {
    "fieldname": "section_break_15",
@@ -191,14 +195,23 @@
    "fetch_if_empty": 1,
    "fieldname": "extra_time",
    "fieldtype": "Time",
-   "label": "Extra Time",
+   "label": "OT Hours",
    "read_only": 1
+  },
+  {
+   "fetch_from": "employee.employment_type",
+   "fieldname": "employment_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employment Type",
+   "options": "Employment Type"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-18 15:18:42.874259",
+ "modified": "2024-11-27 20:07:45.146353",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "Attendance Regularize",
@@ -215,6 +228,7 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],

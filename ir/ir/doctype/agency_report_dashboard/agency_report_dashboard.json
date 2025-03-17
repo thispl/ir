@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-03-03 10:15:19.611913",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "select",
+  "from_date",
+  "to_date",
+  "agency",
+  "download"
+ ],
+ "fields": [
+  {
+   "fieldname": "select",
+   "fieldtype": "Select",
+   "label": "Select",
+   "options": "\nSalary Register"
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date"
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date"
+  },
+  {
+   "fieldname": "agency",
+   "fieldtype": "Link",
+   "label": "Agency",
+   "options": "Agency"
+  },
+  {
+   "depends_on": "eval:doc.from_date && doc.to_date",
+   "fieldname": "download",
+   "fieldtype": "Button",
+   "label": "Download"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-03-03 10:17:28.734464",
+ "modified_by": "Administrator",
+ "module": "IR",
+ "name": "Agency Report Dashboard",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

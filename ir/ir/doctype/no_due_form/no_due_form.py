@@ -8,7 +8,6 @@ class NoDueForm(Document):
 	def validate(self):
 		# self.no_due_clearance
 		for n in self.no_due_clearance:
-			frappe.errprint(n.due_status)
 			if n.due_status =='':
 				frappe.sendmail(
 					recipients = ['jagadeesan.a@groupteampro.com'],

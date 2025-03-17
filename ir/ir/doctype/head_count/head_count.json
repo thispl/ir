@@ -31,7 +31,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-05-30 12:55:49.997775",
+ "modified": "2024-10-25 17:47:21.079006",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "Head Count",
@@ -50,5 +50,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

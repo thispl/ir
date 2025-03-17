@@ -11,10 +11,13 @@
   "employee_name",
   "ot_date",
   "od_date",
+  "shift",
   "column_break_i4es",
   "department",
   "designation",
   "employee_category",
+  "agency_employee",
+  "normal_employee",
   "section_break_ekoq",
   "planned_hour",
   "ot_hour",
@@ -79,6 +82,7 @@
    "fetch_from": "employee.custom_employee_category",
    "fieldname": "employee_category",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Employee Category",
    "options": "Employee Category"
   },
@@ -135,12 +139,33 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "shift",
+   "fieldtype": "Link",
+   "label": "Shift",
+   "options": "Shift Type"
+  },
+  {
+   "default": "0",
+   "fieldname": "agency_employee",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Agency Employee"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "normal_employee",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Normal Employee"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-06 22:14:20.700949",
+ "modified": "2025-03-01 15:32:13.525647",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "Over Time Request",
@@ -162,5 +187,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

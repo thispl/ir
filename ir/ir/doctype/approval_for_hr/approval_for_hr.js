@@ -72,7 +72,7 @@ frappe.ui.form.on('Approval For HR', {
 									'half_day': r.message.half_day,
 									'half_day_date': r.message.half_day_date,
 									'total_leave_days': r.message.total_leave_days,
-									'session': r.message.session,
+									'session': r.message.custom_session,
 									'description': r.message.to_time,
 									'leave_approver': r.message.leave_approver,
 									'leave_approver_name': r.message.leave_approver_name,
@@ -376,6 +376,7 @@ frappe.ui.form.on('Approval For HR', {
 					"doctype": "Over Time Request",
 					"filters": [
 						['workflow_state', '=', 'HR Pending'],
+						['agency_employee','=',0]
 						// ['first_manager', '=', frappe.session.user]
 					],
 					'field':['*'],
@@ -392,8 +393,7 @@ frappe.ui.form.on('Approval For HR', {
 								"name": d.name
 							},
 							callback(r) {
-								if (r.message.ot_hour != '0:00:00' ){
-									// console.log(r.message.ot_hours)
+								if (r.message.ot_hour != '0:00:00' && r.message.agency_employee == 0){
 									frm.add_child('ot_approval', {
 										'overtime_request': r.message.name,
 										'employee': r.message.employee,
@@ -605,7 +605,7 @@ frappe.ui.form.on('Approval For HR', {
 									'half_day': r.message.half_day,
 									'half_day_date': r.message.half_day_date,
 									'total_leave_days': r.message.total_leave_days,
-									'session': r.message.session,
+									'session': r.message.custom_session,
 									'description': r.message.to_time,
 									'leave_approver': r.message.leave_approver,
 									'leave_approver_name': r.message.leave_approver_name,
@@ -923,7 +923,8 @@ frappe.ui.form.on('Approval For HR', {
 					"doctype": "Over Time Request",
 					"filters": [
 						['workflow_state', '=', 'HR Pending'],
-						['employee','!=',r.message.name]
+						['employee','!=',r.message.name],
+						['agency_employee','=',0]
 					],
 					'field':['*'],
 					limit_page_length: 2000
@@ -939,8 +940,7 @@ frappe.ui.form.on('Approval For HR', {
 								"name": d.name
 							},
 							callback(r) {
-								if (r.message.ot_hour != '0:00:00' ){
-									// console.log(r.message.ot_hours)
+								if (r.message.ot_hour != '0:00:00' && r.message.agency_employee == 0){
 									frm.add_child('ot_approval', {
 										'overtime_request': r.message.name,
 										'employee': r.message.employee,

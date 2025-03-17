@@ -29,27 +29,32 @@
   {
    "fieldname": "designation",
    "fieldtype": "Link",
-   "label": "Designation",
+   "in_list_view": 1,
+   "label": "Salary Category",
    "options": "Designation"
   },
   {
    "fieldname": "basic",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "label": "Basic"
   },
   {
    "fieldname": "dearness_allowance",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "label": "Dearness Allowance"
   },
   {
    "fieldname": "special_allowance",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "label": "Special Allowance"
   },
   {
    "fieldname": "gross",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "label": "Gross"
   },
   {
@@ -122,7 +127,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-09-03 20:31:49.995287",
+ "modified": "2025-01-24 17:30:22.802584",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "Agency Wages",

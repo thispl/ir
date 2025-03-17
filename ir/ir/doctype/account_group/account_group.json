@@ -18,7 +18,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-04-22 17:05:48.920444",
+ "modified": "2024-10-25 17:47:21.542756",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "Account Group",
@@ -40,5 +40,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

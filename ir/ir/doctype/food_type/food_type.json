@@ -18,7 +18,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-04-05 17:43:08.669129",
+ "modified": "2024-10-25 17:47:21.841208",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "Food Type",
@@ -40,5 +40,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

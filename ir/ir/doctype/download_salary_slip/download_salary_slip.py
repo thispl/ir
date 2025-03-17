@@ -13,10 +13,8 @@ class DownloadSalarySlip(Document):
 		if self.month:
 			start_date = str(self.year) + '-' + str(month.get(self.month)) + '-01'
 
-		frappe.errprint(start_date)
 		slips = frappe.db.sql("""select name from `tabSalary Slip` where start_date = '%s' and employee = '%s' and docstatus != 2 """%(start_date,self.employee_id),as_dict=True)
 		return slips
-
 
 month = {
 	'Jan':1,

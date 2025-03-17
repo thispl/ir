@@ -39,7 +39,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-07-05 19:49:37.653449",
+ "modified": "2024-10-25 17:47:20.815368",
  "modified_by": "Administrator",
  "module": "IR",
  "name": "Attendance Process Tool",
@@ -58,5 +58,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

@@ -14,44 +14,50 @@ import frappe
 from frappe.utils import time_diff_in_hours
 from datetime import datetime, timedelta
 from frappe.model.document import Document
-from ir.mark_attendance import update_att_with_employee
+from ir.mark_attendance import update_on_duty
+from ir.mark_attendance import mark_whs
 
 class MissPunchApplication(Document):
     def on_submit(self):
-        att = frappe.db.exists('Attendance',{'attendance_date':self.attendance_date,'employee':self.employee,'docstatus':('!=',2)})
-        if att:
+        if self.workflow_state == "Approved":
+            att = frappe.db.exists('Attendance',{'attendance_date':self.attendance_date,'employee':self.employee,'docstatus':('!=',2)})
+            if att:
 
-            attendance = frappe.get_doc("Attendance",{'attendance_date':self.attendance_date,'employee':self.employee,'docstatus':('!=',2)})
-            frappe.db.set_value("Attendance",attendance.name,"in_time",self.in_time)
-            frappe.db.set_value("Attendance",attendance.name,"out_time",self.out_time)
-            frappe.db.set_value("Attendance",attendance.name,"shift",self.shift)
-            frappe.db.set_value("Attendance",attendance.name,"status","Present")
-            frappe.db.set_value("Attendance",attendance.name,"custom_miss_punch_application",self.name)
+                attendance = frappe.get_doc("Attendance",{'attendance_date':self.attendance_date,'employee':self.employee,'docstatus':('!=',2)})
+                frappe.db.set_value("Attendance",attendance.name,"in_time",self.in_time)
+                frappe.db.set_value("Attendance",attendance.name,"out_time",self.out_time)
+                frappe.db.set_value("Attendance",attendance.name,"shift",self.shift)
+                # frappe.db.set_value("Attendance",attendance.name,"status","Present")
+                frappe.db.set_value("Attendance",attendance.name,"custom_miss_punch_application",self.name)
 
-            in_t = str(self.in_time)
-            out_t = str(self.out_time)
-            # Convert datetime strings to Python datetime objects
-            datetime1 = get_datetime(in_t)
-            datetime2 = get_datetime(out_t)
+                # in_t = str(self.in_time)
+                # out_t = str(self.out_time)
+                # # Convert datetime strings to Python datetime objects
+                # datetime1 = get_datetime(in_t)
+                # datetime2 = get_datetime(out_t)
 
-            # Calculate time difference
-            time_difference = datetime2 - datetime1
-            frappe.errprint(time_difference)
-            hours, remainder = divmod(time_difference.total_seconds(), 3600)
-            minutes, seconds = divmod(remainder, 60)
+                # # Calculate time difference
+                # time_difference = datetime2 - datetime1
+                # hours, remainder = divmod(time_difference.total_seconds(), 3600)
+                # minutes, seconds = divmod(remainder, 60)
 
-            # Format the time difference as "HH:MM:SS"
-            formatted_time_difference = "{:02}:{:02}:{:02}".format(int(hours), int(minutes), int(seconds))
+                # # Format the time difference as "HH:MM:SS"
+                # formatted_time_difference = "{:02}:{:02}:{:02}".format(int(hours), int(minutes), int(seconds))
 
-            time_str = formatted_time_difference  # Replace with your actual time string
+                # time_str = formatted_time_difference  # Replace with your actual time string
 
-            # Split the time string into hours, minutes, and seconds
-            hours, minutes, seconds = map(int, time_str.split(':'))
-            time_in_float = hours + minutes/60 + seconds/3600
-            frappe.db.set_value("Attendance",attendance.name,"custom_total_working_hours",time_difference)
-            frappe.db.set_value("Attendance",attendance.name,"working_hours",time_in_float)
-            ot_calculation(self.name)
-            frappe.db.commit()
+                # # Split the time string into hours, minutes, and seconds
+                # hours, minutes, seconds = map(int, time_str.split(':'))
+                # time_in_float = hours + minutes/60 + seconds/3600
+                # frappe.db.set_value("Attendance",attendance.name,"custom_total_working_hours",time_difference)
+                # frappe.db.set_value("Attendance",attendance.name,"working_hours",time_in_float)
+                start_date = self.attendance_date  # This is your attendance_date
+                to_date = add_days(start_date, 1)  # Adding 1 day to attendance_date
+
+                # Call the function with corrected arguments
+                mark_whs(start_date, to_date, self.employee)
+                ot_calculation(self.name)
+                frappe.db.commit()
             
     
     from frappe.utils.data import date_diff, now_datetime, nowdate, today, add_days
@@ -70,11 +76,11 @@ class MissPunchApplication(Document):
                 
                 attendance_obj.cancel()
                 to_date = add_days(self.attendance_date,1)
-                update_att_with_employee(self.attendance_date, to_date, self.employee)
+                update_on_duty(self.attendance_date, to_date, self.employee)
             if attendance_obj.docstatus ==0:
-                frappe.db.sql("""DELETE FROM `tabAttendance` WHERE name = %s""", (attendance_obj.name,), as_dict=True)
+                frappe.db.sql("""DELETE FROM `tabAttendance` WHERE custom_miss_punch_application = %s""", (self.name))
                 to_date = add_days(self.attendance_date,1)
-                update_att_with_employee(self.attendance_date, to_date, self.employee)
+                update_on_duty(self.attendance_date, to_date, self.employee)
 
             
             
@@ -117,25 +123,16 @@ def time_diff_in_timedelta_1(time1, time2):
     datetime2 = datetime.combine(datetime.min, time2)
     return datetime2 - datetime1
 
-@frappe.whitelist()
-def cron_job_miss_punch():
-    job = frappe.db.exists('Scheduled Job Type', 'miss_punch_mail_alert')
-    if not job:
-        att = frappe.new_doc("Scheduled Job Type")
-        att.update({
-            "method": 'ir.ir.doctype.miss_punch_application.miss_punch_application.miss_punch_mail_alert',
-            "frequency": 'Cron',
-            "cron_format": '0 8 * * *'
-        })
-        att.save(ignore_permissions=True)
+
 
 @frappe.whitelist()
 def miss_punch_mail_alert():
     yesterday = add_days(frappe.utils.today(), -1)
     attendance = frappe.db.sql("""
-        SELECT * FROM `tabAttendance`
-        WHERE attendance_date = %s AND docstatus != 2
-        ORDER BY employee
+        SELECT * FROM `tabAttendance` LEFT JOIN `tabEmployee` 
+        ON `tabAttendance`.employee = `tabEmployee`.name
+        WHERE `tabAttendance`.attendance_date = %s AND `tabAttendance`.docstatus != 2 and `tabEmployee`.employment_type!='Agency'
+        order by `tabAttendance`.employee
     """, (yesterday,), as_dict=True)
     
     staff = """
@@ -195,11 +192,9 @@ def miss_punch_mail_alert():
     else:
         staff += "</table>"
 
-    # For Testing
-    # recipients = ['amar.p@groupteampro.com']
-    recipients = ['amar.p@groupteampro.com', 'dilek.ulu@irecambioindia.com', 'hr@irecambioindia.com',
+    recipients = ['dilek.ulu@irecambioindia.com', 'hr@irecambioindia.com',
     'prabakar@irecambioindia.com', 'deepak.krishnamoorthy@irecambioindia.com',
-    'anil.p@groupteampro.com','sivarenisha.m@groupteampro.com','jenisha.p@groupteampro.com'
+    'anil.p@groupteampro.com','sivarenisha.m@groupteampro.com','jenisha.p@groupteampro.com','sarath.v@groupteampro.com'
     ]
 
     

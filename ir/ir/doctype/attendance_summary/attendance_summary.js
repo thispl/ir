@@ -3,7 +3,7 @@
 
 frappe.ui.form.on("Attendance Summary", {
 	refresh(frm) {
-		if(frappe.session.user != 'Administrator') {
+		if(frappe.session.user != 'Administrator' && !frappe.user.has_role('HR') ) {
 			frm.set_df_property('from_date','hidden',1)
 			frm.set_df_property('to_date','hidden',1)
         }
@@ -30,7 +30,7 @@ frappe.ui.form.on("Attendance Summary", {
 		frm.trigger('get_from_to_dates')
     },
     onload(frm){
-		if(frappe.session.user != 'Administrator') {
+		if(frappe.session.user != 'Administrator' && !frappe.user.has_role('HR') ) {
 			frm.set_df_property('from_date','hidden',1)
 			frm.set_df_property('to_date','hidden',1)
         }
@@ -80,9 +80,7 @@ frappe.ui.form.on("Attendance Summary", {
 				"year" : frm.doc.year
 			},
 			callback(r){
-				// console.log(r.message)
 				if(r.message){
-					// console.log(r.message)
 					frm.set_value('from_date', r.message[0]);
 					frm.set_value('to_date', r.message[1]);
 				}
